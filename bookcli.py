@@ -28,17 +28,17 @@ def choice():
             search_term = input('\nEnter the title of the book: ')
             match input('\nSelect the website: \n1. Libgen\n2. Zlibrary\n3. Anna\'s Archive\n4. Restart\n5. Exit\n\nEnter index number: '):
                 case '1':
-                    libgen()
+                    libgen(search_term)
                 case '2':
-                    zlibrary()
+                    zlibrary(search_term)
                 case '3':
-                    anna_archive()
+                    anna_archive(search_term)
                 case '4':
                     choice()
                 case '5':
                     exit()
                 case _:
-                    print('Invalid value')
+                    print('\nInvalid value')
         case '2':
             match input('\nSelect the website: \n1. MangaSee\n2. Comick\n3. Bato\n4. Restart\n5. Exit\n\nEnter index number: '):
                 case '1':
@@ -52,7 +52,7 @@ def choice():
                 case '5':
                     exit()
                 case _:
-                    print('Invalid value')
+                    print('\nInvalid value')
         case '3':
             match input('\nSelect the website: \n1. Anime1\n2. Anime2\n3. Anime3\n4. Restart\n5. Exit\n\nEnter index number: '):
                 case '1':
@@ -66,15 +66,15 @@ def choice():
                 case '5':
                     exit()
                 case _:
-                    print('Invalid value')
+                    print('\nInvalid value')
         case '4':
             exit()                    
         case _:
-            print('Invalid value')
+            print('\nInvalid value')
 
 
 ## Function 1: Corresponds to "libgen.is" website and uses libgen_api package to find and download the books.
-def libgen():
+def libgen(search_term):
     libgen_search = LibgenSearch()
     results = libgen_search.search_title(search_term)
     index_int = 1
