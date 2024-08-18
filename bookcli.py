@@ -46,7 +46,7 @@ from libgen_api import LibgenSearch
 
 ## Declaring global variables that will be used.
   
-url = 'https://singlelogin.rs
+url = 'https://singlelogin.rs'
 
 ## Sending request to the webpage to get the response stored in "response" variable.
 
