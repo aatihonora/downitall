@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup, Tag
 # from pydantic import BaseModel, AnyHttpUrl
 from datetime import date 
 from libgen_api import LibgenSearch
-import data
+
 
 ## Space for classes start from here
 
@@ -30,9 +30,9 @@ def choice():
                 case '1':
                     libgen(search_term)
                 case '2':
-                    zlibrary(search_term)
+                    zlibrary()
                 case '3':
-                    anna_archive(search_term)
+                    anna_archive()
                 case '4':
                     choice()
                 case '5':
@@ -96,6 +96,18 @@ def libgen(search_term):
 ## Function 2: Corresponds to "singlelogin.rs" website and uses pydantic and requests to extract the books and download them.
 def zlibrary():
     pass
+    # Useful stuff
+    #https://singlelogin.rs/rpc.php
+    #https://z-library.rs/
+    
+    # login_url = 'https://singlelogin.rs/rpc.php' 
+    # redirect_url = 'https://z-library.rs/'
+    # payload = {   
+    # }
+    # response = requests.post(login_url, data=payload)
+    # print(response.text)
+    # soup = BeautifulSoup(response.content, "html.parser")
+    
 
 ## Function 3: Corresponds to "singlelogin.rs" website and uses pydantic and requests to extract the books and download them.
 def anna_archive():
@@ -119,18 +131,19 @@ def anna_archive():
 ## Declaring global variables that will be used.
 ## Sending request to the webpage to get the response stored in "response" variable.
 ## Getting the html file from the response in the form of text and then storing it in the variable "soup" for parsing it with BeautifulSoup.
-url = 'https://singlelogin.rs/' 
-response = requests.get(url)
-soup = BeautifulSoup(response.content, "html.parser")
-choice()
 
-    
-        
-# Useful stuff
-#{"errors":[],"response":{"regularDomains":["z-library.rs","z-library.do","singlelogin.re","1lib.sk","z-lib.gd","library-asia.sk","z-lib.gs"],"params":"\/?remix_userid=16061296&remix_userkey=a19a96b529f662ecbcf5c694d5cdc800","user_id":16061296,"user_key":"a19a96b529f662ecbcf5c694d5cdc800"}}
-#https://singlelogin.rs/rpc.php
-#https://z-library.rs/
+login_url = 'https://singlelogin.rs/' 
+redirect_url = 'https://z-library.rs/'
+payload = {
 
+}
+with requests.session() as session:
+    session.post(login_url, data=payload)
+    response = session.get(login_url)
+    soup = BeautifulSoup(response.content, "html.parser")
+    f = open("file.txt", "a")
+    f.write(soup.prettify())
+    f.close()
 
 ## Specifying the particular table and storing it in variable "rows" and creating a list "episodes" with pydantic class "Episode" which takes function "extract_episode_data" as argument while "extract_episode_data" function takes row as argument that is acquired by looping rows.
 # rows = soup.select('tbody > tr')
