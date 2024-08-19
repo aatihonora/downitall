@@ -22,6 +22,10 @@ from libgen_api import LibgenSearch
 
 ## Space for functions start from here
 
+def clear():
+    print("\033c")
+    
+
 def choice():
     match input('\nSelect the category: \n1. Books\n2. Manga\n3. Anime\n4. Exit\n\nEnter index number: '):
         case '1':
@@ -41,6 +45,7 @@ def choice():
                     exit()
                 case _:
                     print('\nInvalid value')
+
         case '2':
             match input('\nSelect the website: \n1. MangaSee\n2. Comick\n3. Bato\n4. Restart\n5. Exit\n\nEnter index number: '):
                 case '1':
@@ -158,7 +163,7 @@ def anna_archive(search_term):
 ## Finding the specific piece of html body that corresponds with download url.
             ul_html = book_soup.find_all('ul', class_ = 'list-inside mb-4 ml-1')
 ## Iterating each link found in "ul" html class and printing it.
-               for links in ul_html:
+            for links in ul_html:
                 for each_link in links.find_all('a', class_ = 'js-download-link', href=True):
                     print(book_url + each_link['href'])
             print('\n\nThe links will lead to cloudflare human verifaction, if it fails to redirect just paste the link and try again')
