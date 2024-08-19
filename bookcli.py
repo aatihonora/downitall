@@ -32,10 +32,12 @@ def choice():
                 case '2':
                     zlibrary()
                 case '3':
-                    anna_archive()
+                    anna_archive(search_term)
                 case '4':
+                    clear()
                     choice()
                 case '5':
+                    clear()
                     exit()
                 case _:
                     print('\nInvalid value')
@@ -48,8 +50,10 @@ def choice():
                 case '3':
                     pass
                 case '4':
+                    clear()
                     choice()
                 case '5':
+                    clear()
                     exit()
                 case _:
                     print('\nInvalid value')
@@ -62,12 +66,15 @@ def choice():
                 case '3':
                     pass
                 case '4':
+                    clear()
                     choice()
                 case '5':
+                    clear()
                     exit()
                 case _:
                     print('\nInvalid value')
         case '4':
+            clear()
             exit()                    
         case _:
             print('\nInvalid value')
@@ -109,52 +116,73 @@ def zlibrary():
     # soup = BeautifulSoup(response.content, "html.parser")
     
 
-## Function 3: Corresponds to "singlelogin.rs" website and uses pydantic and requests to extract the books and download them.
-def anna_archive():
-    pass
-
-## Creating the "extract_episode_data" function, which takes row and returns dict and making a dict variable "model_data" to store the data for each row of the table, also making "row_data" variable to store table data as td.
-## Enumerating the row_data taken from table data as "td" with index "i", each iteration of "i" being an element of table.
-# def extract_episode_data(row: Tag) -> dict:
-#     model_data = {}
-#     row_data = row.select('td')
-#     for i, td in enumerate(row_data):
-#         if i==2:
-#             link = td.find('a')
-#             model_data['url'] = base_url + link.attrs['href'] + "/"
-#             model_data['title'] = link.text
-# 
-#     return model_data
-
+## Function 3: Corresponds to "annads-archive.org" website and uses requests to extract the books and download them.
+## Defining the fuction that takes argument 'search_term'.
+def anna_archive(search_term):
+    url = 'https://annas-archive.org/search?q=' + search_term
+    book_url = 'https://annas-archive.org'
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+## Finding the specific piece of html body that corresponds with book names and url.
+    div_html = soup.find_all('div', class_ = 'h-[125] flex flex-col justify-center')
+    h3_html = soup.find_all('h3', class_ = 'max-lg:line-clamp-[2] lg:truncate leading-[1.2] lg:leading-[1.35] text-md lg:text-xl font-bold')
+## Creating an empty list "link_list" and iterating each link found in "div" html class and appending them into the list.
+    link_list = []
+    for links in div_html:
+        for each_link in links.find_all('a', href=True):
+            link_list.append(book_url + each_link['href'])
+## Creating an empty list "name_list" and iterating each name found in "h3" html class and appending them into the list.
+    name_list = []
+    for names in h3_html:
+        for name in names:
+            name_list.append(name.string)
+## Creating an empty list "index_list" and iterating "i" in the range of 1 to 12 for indexing dictionary and appending them into the list.
+    index_list = []
+    for i in range(1,12):
+        index_list.append(i)
+## Creating a dictionary that takes length from "link_list" witk key as index and value as url. i.e  {'1': 'url'}.
+    model_data = {index_list[i]: link_list[i] for i in range(len(link_list))}
+## Printing the names of the books with imdex for user to select.
+    index_int = 1
+    for title in name_list:
+        index = str(index_int)
+        print(index + " " + title)
+        index_int += 1
+## Matching the user selection with library to get its value. Sending another get request to acquire download links for selected book.
+    try:
+        book_selection = int(input("\nSelect the book by typing the index number: "))
+        if book_selection in model_data:
+            book_link = f'{model_data[book_selection]}'
+            book_response = requests.get(book_link)
+            book_soup = BeautifulSoup(book_response.content, "html.parser")
+## Finding the specific piece of html body that corresponds with download url.
+            ul_html = book_soup.find_all('ul', class_ = 'list-inside mb-4 ml-1')
+## Iterating each link found in "ul" html class and printing it.
+               for links in ul_html:
+                for each_link in links.find_all('a', class_ = 'js-download-link', href=True):
+                    print(book_url + each_link['href'])
+            print('\n\nThe links will lead to cloudflare human verifaction, if it fails to redirect just paste the link and try again')
+                       
+        else:
+            raise ValueError
+    except ValueError:
+        print("Invalid integer. The number must be in the range.")
+        
 ## Space for functions end here
 
-## Declaring global variables that will be used.
-## Sending request to the webpage to get the response stored in "response" variable.
-## Getting the html file from the response in the form of text and then storing it in the variable "soup" for parsing it with BeautifulSoup.
+##Under Progress
+# login_url = 'https://singlelogin.rs/' 
+# redirect_url = 'https://z-library.rs/'
+# payload = {
+# 
+# }
+# with requests.session() as session:
+#     session.post(login_url, data=payload)
+#     response = session.get(login_url)
+#     soup = BeautifulSoup(response.content, "html.parser")
+#     f = open("file.txt", "a")
+#     f.write(soup.prettify())
+#     f.close()
+##Under Progress
 
-login_url = 'https://singlelogin.rs/' 
-redirect_url = 'https://z-library.rs/'
-payload = {
-
-}
-with requests.session() as session:
-    session.post(login_url, data=payload)
-    response = session.get(login_url)
-    soup = BeautifulSoup(response.content, "html.parser")
-    f = open("file.txt", "a")
-    f.write(soup.prettify())
-    f.close()
-
-## Specifying the particular table and storing it in variable "rows" and creating a list "episodes" with pydantic class "Episode" which takes function "extract_episode_data" as argument while "extract_episode_data" function takes row as argument that is acquired by looping rows.
-# rows = soup.select('tbody > tr')
-# episodes = [Episode(**extract_episode_data(row)) for row in rows]
-
-#search_term = input("Enter the title: ")
-#resultepisodes = [eachepisode for eachepisode in episodes if search_term.lower() in eachepisode.title.lower() ]
-
-# Converting list "resultepisodes" into a string type and stored as "results" and seperating url through regex and storing it in an array called "pageurl"
-#results = str(resultepisodes)
-#pageurl = re.findall("http[s]*\S+/", results)
-#print(f"\nEpisode with the term {search_term}: ")
-#for i in pageurl:
-    #print(i)
+choice()
