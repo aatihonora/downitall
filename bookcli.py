@@ -6,21 +6,30 @@
 import requests
 import re
 from bs4 import BeautifulSoup, Tag
-# from pydantic import BaseModel, AnyHttpUrl
 from datetime import date 
-from libgen_api import LibgenSearch
-
 
 ## Space for classes start from here
-
-## Episode class uses BaseModel from pydantic to form an automatic model based on given values.
-# class Episode(BaseModel):
-#     title:  str
-#     url:  AnyHttpUrl
 
 ## Space for classes end here
 
 ## Space for functions start from here
+
+def file_open():
+    f = open('file.txt', 'a')
+    f.write(soup.prettify())
+    f.close()
+
+def retry():
+    match input('\nDo you want to search another book:\n1. Yes\n2. No\nType the index number: '):
+        case '1':
+            choice()
+            clear()
+        case '2':
+            clear()
+            exit()
+        case _:
+            print('\nInvalid value')
+            retry()
 
 def clear():
     print("\033c")
@@ -30,13 +39,13 @@ def choice():
     match input('\nSelect the category: \n1. Books\n2. Manga\n3. Anime\n4. Exit\n\nEnter index number: '):
         case '1':
             search_term = input('\nEnter the title of the book: ')
-            match input('\nSelect the website: \n1. Libgen\n2. Zlibrary\n3. Anna\'s Archive\n4. Restart\n5. Exit\n\nEnter index number: '):
+            match input('\nSelect the website: \n1. Libgen\n2. Anna\'s Archive\n3. Zlibrary\n4. Restart\n5. Exit\n\nEnter index number: '):
                 case '1':
                     libgen(search_term)
                 case '2':
-                    zlibrary()
-                case '3':
                     anna_archive(search_term)
+                case '3':
+                    zlibrary()
                 case '4':
                     clear()
                     choice()
@@ -84,44 +93,66 @@ def choice():
         case _:
             print('\nInvalid value')
 
-
-## Function 1: Corresponds to "libgen.is" website and uses libgen_api package to find and download the books.
-def libgen(search_term):
-    libgen_search = LibgenSearch()
-    results = libgen_search.search_title(search_term)
+def book_choice(link_list, name_list):
+    index_list = []
+    for i in range(1,30):
+        index_list.append(i)
+    ## Creating a dictionary that takes length from "link_list" witk key as index and valu
+    model_data = {index_list[i]: link_list[i] for i in range(len(link_list))}
+    ## Printing the names of the books with imdex for user to select.
     index_int = 1
-    for result in results:
+    for title in name_list:
         index = str(index_int)
-        print(index + " " + result["Title"])
+        print(index + " " + title)
         index_int += 1
+     # Matching the user selection with library to get its value. Sending another get requ
     try:
-        book_selection = int(input("Select the book by typing the index number: "))
-        if book_selection < 1 or book_selection > index_int-1:
-            raise ValueError
+        book_selection = int(input("\nSelect the book by typing the index number: "))
+        if book_selection in model_data:
+           book_link = f'{model_data[book_selection]}'
+           return book_link
         else:
-            item_to_download = results[book_selection-1]
-            download_links = libgen_search.resolve_download_links(item_to_download)
-            print(download_links)
+            raise ValueError
     except ValueError:
         print("Invalid integer. The number must be in the range.")
 
-## Function 2: Corresponds to "singlelogin.rs" website and uses pydantic and requests to extract the books and download them.
-def zlibrary():
-    pass
-    # Useful stuff
-    #https://singlelogin.rs/rpc.php
-    #https://z-library.rs/
-    
-    # login_url = 'https://singlelogin.rs/rpc.php' 
-    # redirect_url = 'https://z-library.rs/'
-    # payload = {   
-    # }
-    # response = requests.post(login_url, data=payload)
-    # print(response.text)
-    # soup = BeautifulSoup(response.content, "html.parser")
-    
 
-## Function 3: Corresponds to "annads-archive.org" website and uses requests to extract the books and download them.
+## Function 1: Corresponds to "libgen.is" website and uses libgen_api package to find and download the books.
+def libgen(search_term):
+    url = 'https://libgen.is/search.php?req=' + search_term
+    book_url = 'https://libgen.is/'
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+    ## Finding the specific piece of html body that corresponds with book names and url.
+    tr_html = soup.find_all('tr', attrs={"bgcolor":"#C6DEFF"})
+    id_list = []
+    for td_html in tr_html:
+        for each_id in td_html.find_all('td')[0]:
+            id_list.append(each_id.text)
+
+    ## Creating an empty list "link_list" and iterating each link found in "div" html clas
+    link_list = []
+    for i in id_list:
+        for a_link_html in tr_html:
+            for each_link in a_link_html.find_all('a', attrs={"id":i}, href=True):
+                link_list.append(book_url + each_link['href'])
+                
+    name_list = []
+    for i in id_list:
+        for a_link_html in tr_html:
+            for each_name in a_link_html.find_all('a', attrs={"id":i}, href=True):
+                names = each_name.next_element
+                name_list.append(names)
+
+    book_link = book_choice(link_list, name_list)
+    book_response = requests.get(book_link)
+    soup = BeautifulSoup(book_response.content, "html.parser")
+    a_html_link = soup.find('a', attrs={"title":"Libgen.li"}, href=True)
+    download_link = a_html_link['href']
+    print(download_link)
+    retry()
+
+## Function 2: Corresponds to "annads-archive.org" website and uses requests to extract the books and download them.
 ## Defining the fuction that takes argument 'search_term'.
 def anna_archive(search_term):
     url = 'https://annas-archive.org/search?q=' + search_term
@@ -141,53 +172,38 @@ def anna_archive(search_term):
     for names in h3_html:
         for name in names:
             name_list.append(name.string)
-## Creating an empty list "index_list" and iterating "i" in the range of 1 to 12 for indexing dictionary and appending them into the list.
-    index_list = []
-    for i in range(1,12):
-        index_list.append(i)
-## Creating a dictionary that takes length from "link_list" witk key as index and value as url. i.e  {'1': 'url'}.
-    model_data = {index_list[i]: link_list[i] for i in range(len(link_list))}
-## Printing the names of the books with imdex for user to select.
-    index_int = 1
-    for title in name_list:
-        index = str(index_int)
-        print(index + " " + title)
-        index_int += 1
-## Matching the user selection with library to get its value. Sending another get request to acquire download links for selected book.
-    try:
-        book_selection = int(input("\nSelect the book by typing the index number: "))
-        if book_selection in model_data:
-            book_link = f'{model_data[book_selection]}'
-            book_response = requests.get(book_link)
-            book_soup = BeautifulSoup(book_response.content, "html.parser")
+
+    book_link = book_choice(link_list, name_list)
+    book_response = requests.get(book_link)
+    book_soup = BeautifulSoup(book_response.content, "html.parser")
 ## Finding the specific piece of html body that corresponds with download url.
-            ul_html = book_soup.find_all('ul', class_ = 'list-inside mb-4 ml-1')
+    ul_html = book_soup.find_all('ul', class_ = 'list-inside mb-4 ml-1')
 ## Iterating each link found in "ul" html class and printing it.
-            for links in ul_html:
-                for each_link in links.find_all('a', class_ = 'js-download-link', href=True):
-                    print(book_url + each_link['href'])
-            print('\n\nThe links will lead to cloudflare human verifaction, if it fails to redirect just paste the link and try again')
-                       
-        else:
-            raise ValueError
-    except ValueError:
-        print("Invalid integer. The number must be in the range.")
-        
+    for links in ul_html:
+        for each_link in links.find_all('a', class_ = 'js-download-link', href=True):
+            print(book_url + each_link['href'])
+    print('\n\nThe links will lead to cloudflare human verifaction, if it fails to redirect just paste the link and try again')
+    retry()
+## Function 3: Corresponds to "singlelogin.rs" website and uses pydantic and requests to extract the books and download them.
+def zlibrary():
+    pass
+    ##Under Progress
+    # login_url = 'https://singlelogin.rs/' 
+    # redirect_url = 'https://z-library.rs/'
+    # payload = {
+    # 
+    # }
+    # with requests.session() as session:
+    #     session.post(login_url, data=payload)
+    #     response = session.get(login_url)
+    #     soup = BeautifulSoup(response.content, "html.parser")
+    #     f = open("file.txt", "a")
+    #     f.write(soup.prettify())
+    #     f.close()
+    ##Under Progress
+
 ## Space for functions end here
 
-##Under Progress
-# login_url = 'https://singlelogin.rs/' 
-# redirect_url = 'https://z-library.rs/'
-# payload = {
-# 
-# }
-# with requests.session() as session:
-#     session.post(login_url, data=payload)
-#     response = session.get(login_url)
-#     soup = BeautifulSoup(response.content, "html.parser")
-#     f = open("file.txt", "a")
-#     f.write(soup.prettify())
-#     f.close()
-##Under Progress
-
 choice()
+
+
