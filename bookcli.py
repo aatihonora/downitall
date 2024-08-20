@@ -93,30 +93,6 @@ def choice():
         case _:
             print('\nInvalid value')
 
-def book_choice(link_list, name_list):
-    index_list = []
-    for i in range(1,30):
-        index_list.append(i)
-    ## Creating a dictionary that takes length from "link_list" witk key as index and valu
-    model_data = {index_list[i]: link_list[i] for i in range(len(link_list))}
-    ## Printing the names of the books with imdex for user to select.
-    index_int = 1
-    for title in name_list:
-        index = str(index_int)
-        print(index + " " + title)
-        index_int += 1
-     # Matching the user selection with library to get its value. Sending another get requ
-    try:
-        book_selection = int(input("\nSelect the book by typing the index number: "))
-        if book_selection in model_data:
-           book_link = f'{model_data[book_selection]}'
-           return book_link
-        else:
-            raise ValueError
-    except ValueError:
-        print("Invalid integer. The number must be in the range.")
-
-
 ## Function 1: Corresponds to "libgen.is" website and uses libgen_api package to find and download the books.
 def libgen(search_term):
     url = 'https://libgen.is/search.php?req=' + search_term
@@ -144,13 +120,33 @@ def libgen(search_term):
                 names = each_name.next_element
                 name_list.append(names)
 
-    book_link = book_choice(link_list, name_list)
-    book_response = requests.get(book_link)
-    soup = BeautifulSoup(book_response.content, "html.parser")
-    a_html_link = soup.find('a', attrs={"title":"Libgen.li"}, href=True)
-    download_link = a_html_link['href']
-    print(download_link)
-    retry()
+    index_list = []
+    for i in range(1,30):
+        index_list.append(i)
+    ## Creating a dictionary that takes length from "link_list" witk key as index and valu
+    model_data = {index_list[i]: link_list[i] for i in range(len(link_list))}
+    ## Printing the names of the books with imdex for user to select.
+    index_int = 1
+
+    for title in name_list:
+        index = str(index_int)
+        print(index + " " + title)
+        index_int += 1
+     # Matching the user selection with library to get its value. Sending another get requ
+    try:
+        book_selection = int(input("\nSelect the book by typing the index number: "))
+        if book_selection in model_data:
+            book_link = f'{model_data[book_selection]}'
+            book_response = requests.get(book_link)
+            soup = BeautifulSoup(book_response.content, "html.parser")
+            a_html_link = soup.find('a', attrs={"title":"Libgen.li"}, href=True)
+            download_link = a_html_link['href']
+            print(download_link)
+            retry()
+        else:
+            raise ValueError
+    except ValueError:
+        print("Invalid integer. The number must be in the range.")
 
 ## Function 2: Corresponds to "annads-archive.org" website and uses requests to extract the books and download them.
 ## Defining the fuction that takes argument 'search_term'.
@@ -173,17 +169,36 @@ def anna_archive(search_term):
         for name in names:
             name_list.append(name.string)
 
-    book_link = book_choice(link_list, name_list)
-    book_response = requests.get(book_link)
-    book_soup = BeautifulSoup(book_response.content, "html.parser")
+    index_list = []
+    for i in range(1,30):
+        index_list.append(i)
+## Creating a dictionary that takes length from "link_list" witk key as index and valu
+    model_data = {index_list[i]: link_list[i] for i in range(len(link_list))}
+## Printing the names of the books with imdex for user to select.
+    index_int = 1
+    for title in name_list:
+        index = str(index_int)
+        print(index + " " + title)
+        index_int += 1
+## Matching the user selection with library to get its value. Sending another get requ
+    try:
+        book_selection = int(input("\nSelect the book by typing the index number: "))
+        if book_selection in model_data:
+            book_link = f'{model_data[book_selection]}'
+            book_response = requests.get(book_link)
+            book_soup = BeautifulSoup(book_response.content, "html.parser")
 ## Finding the specific piece of html body that corresponds with download url.
-    ul_html = book_soup.find_all('ul', class_ = 'list-inside mb-4 ml-1')
+            ul_html = book_soup.find_all('ul', class_ = 'list-inside mb-4 ml-1')
 ## Iterating each link found in "ul" html class and printing it.
-    for links in ul_html:
-        for each_link in links.find_all('a', class_ = 'js-download-link', href=True):
-            print(book_url + each_link['href'])
-    print('\n\nThe links will lead to cloudflare human verifaction, if it fails to redirect just paste the link and try again')
-    retry()
+            for links in ul_html:
+                for each_link in links.find_all('a', class_ = 'js-download-link', href=True):
+                    print(book_url + each_link['href'])
+            print('\n\nThe links will lead to cloudflare human verifaction, if it fails to redirect just paste the link and try again')
+            retry()
+        else:
+            raise ValueError
+    except ValueError:
+        print("Invalid integer. The number must be in the range.")
 ## Function 3: Corresponds to "singlelogin.rs" website and uses pydantic and requests to extract the books and download them.
 def zlibrary():
     pass
