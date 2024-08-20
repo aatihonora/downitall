@@ -22,6 +22,10 @@ Step 8: Type ```python bookcli.py```.
 
 All done.
 
+# Supported Websites 
+## Books
+1. Libgen 
+2. Anna's Archive
 
 
 
