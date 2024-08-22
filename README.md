@@ -3,6 +3,7 @@ This is an educational CLI program to learn web scraping and Python. It does not
 
 # How to run it
 ## Android
+### Installation
 
 Step 1: Download Termux from fdroid and install it.
 
@@ -14,6 +15,11 @@ pkg install python git
 git clone https://github.com/aatihonora/bookcli/
 cd bookcli
 pip install -r requirements.txt
+python bookcli.py
+```
+### Already installed
+```
+cd bookcli
 python bookcli.py
 ```
 
