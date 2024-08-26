@@ -10,8 +10,8 @@ Step 1: Download Termux from fdroid and install it.
 Step 2: Copy and paste 
 ```
 pkg update
-termux-storage-permission
-pkg install python git
+termux-setup-storage
+pkg install python git x11-repo tur-repo chromium
 git clone https://github.com/aatihonora/bookcli/
 cd bookcli
 pip install -r requirements.txt
