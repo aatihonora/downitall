@@ -1,2 +1,4 @@
 requests
 bs4
+selenium==4.9.1
+cbz-generator
