@@ -71,16 +71,16 @@ def choice():
         case "2":
             search_term = input("\nEnter the title of the manga: ")
             match input(
-                "\nSelect the website: \n1. MangaSee\n2. Comick"
-                "\n3. Bato\n4. Restart\n5. Exit"
+                "\nSelect the website: \n1. Bato\n2. Mangasee"
+                "\n3. ComicExtra\n4. Restart\n5. Exit"
                 "\n\nEnter index number: "
             ):
                 case "1":
-                    pass
-                case "2":
-                    pass
-                case "3":
                     manga.bato(search_term)
+                case "2":
+                    manga.mangasee(search_term)
+                case "3":
+                    manga.comicextra(search_term)
                 case "4":
                     clear()
                     choice()

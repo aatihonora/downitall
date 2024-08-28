@@ -1,6 +1,7 @@
 """Class for Book sources"""
 
 import sys
+from functools import cache
 
 import requests
 from bs4 import BeautifulSoup
@@ -13,6 +14,7 @@ class Booksources:
     # extract the books and sends download links.
 
     # Defining the method that takes argument 'search_term'.
+    @cache
     def libgen(self, search_term):
         """Function for scraping Libgen."""
         # All the necessary urls for scraping.
@@ -122,6 +124,7 @@ class Booksources:
     # extract the books and sends download links.
 
     # Defining the method that takes argument 'search_term'.
+    @cache
     def anna_archive(self, search_term):
         """Function for scraping Anna's Archive."""
         # All the necessary urls for scraping.
