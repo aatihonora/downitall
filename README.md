@@ -1,5 +1,6 @@
 # Intro
-This is an educational CLI program to learn web scraping and Python. It does not host anything or download, it only provides links to the user. 
+This is an educational CLI program to learn web scraping and Python. 
+IT DOES NOT HOST ANYTHING.
 
 # How to run it
 ## Android
@@ -27,6 +28,11 @@ python bookcli.py
 ## Books
 1. Libgen 
 2. Anna's Archive
+
+## Manga
+1. Bato.to
+2. Mangasee
+3. ComicExtra
 
 
 
