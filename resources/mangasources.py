@@ -98,7 +98,7 @@ class Mangasources:
             else:
                 # Matching the user selection with "urls_dict" dictionary to get its value.
                 while True:
-                    selection = int(input("\nSelect the book index number: "))
+                    selection = int(input("\nSelect the index number: "))
                     if selection in url_dict:
                         # Getting the name and link by matching the index number from dictionaries.
                         link = f"{url_dict[selection]}"
@@ -221,7 +221,9 @@ class Mangasources:
         except requests.exceptions.RequestException:
             print("Network Error!")
         except TypeError:
-            sys.exit()
+            pass
+        except SessionNotCreatedException:
+            print("If you are not using android then install from win_linux_requirement.txt file")
 
     def mangasee(self, search_term):
         # Url to access the searching.
@@ -282,12 +284,12 @@ class Mangasources:
             self.download_compress(manga_name, chapter_name, img_links_list)
         except requests.exceptions.RequestException:
             print("Network Error!")
-            sys.exit()
         except TimeoutException:
             print("Network Error!")
-            sys.exit()
         except TypeError:
-            sys.exit()
+            pass
+        except SessionNotCreatedException:
+            print("If you are not using android then install from win_linux_requirement.txt file")
     
     def comicextra(self, search_term):
         # Basic url to access the searching.
@@ -324,7 +326,6 @@ class Mangasources:
             chapter_name = chapter_tuple[1]
             # Sending request with selenium webdriver.
             driver.get(chapter_link)
-            print(chapter_link)
             # Making driver wait 10 second before it sends error for not finding the page.
             driver.implicitly_wait(10)
             # Parsering the response with "BeauitifulSoup".
@@ -344,10 +345,10 @@ class Mangasources:
                 for imgs in imgs_html_chapter.find_all("img"):
                     img_links_list.append(imgs["src"].strip())
             # Calling download_compress method as function.
-            print(img_links_list)
             self.download_compress(manga_name, chapter_name, img_links_list)
-        except (requests.exceptions.RequestException, TimeoutException, SessionNotCreatedException):
+        except (requests.exceptions.RequestException, TimeoutException):
             print("Network Error!")
-            sys.exit()
         except TypeError:
-            sys.exit()
+            pass
+        except SessionNotCreatedException:
+            print("If you are not using android then install from win_linux_requirement.txt file")
