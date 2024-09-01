@@ -1,0 +1,5 @@
+requests
+bs4
+selenium
+cbz-generator
+tqdm

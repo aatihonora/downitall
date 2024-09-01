@@ -3,11 +3,12 @@
 # Importing packages required for the program.
 import sys
 
-from resources import Booksources, Mangasources
+from resources import Animesources, Booksources, Mangasources
 
 # Global variables.
 books = Booksources()
 manga = Mangasources()
+anime = Animesources()
 # Space for functions start from here
 
 
@@ -90,17 +91,18 @@ def choice():
                 case _:
                     print("\nInvalid value")
         case "3":
+            search_term = input("\nEnter the title of the anime: ")
             match input(
-                "\nSelect the website: \n1. Anime1\n2. Anime2"
-                "\n3. Anime3\n4. Restart\n5. Exit"
+                "\nSelect the website: \n1. TokyoInsider\n2. Nyaa"
+                "\n3. Kayoanime\n4. Restart\n5. Exit"
                 "\n\nEnter index number: "
             ):
                 case "1":
-                    pass
+                    anime.tokyoinsider(search_term)
                 case "2":
-                    pass
+                    anime.nyaa(search_term)
                 case "3":
-                    pass
+                    anime.kayoanime(search_term)
                 case "4":
                     clear()
                     choice()
