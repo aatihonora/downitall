@@ -4,5 +4,3 @@ selenium
 cbz-generator
 tqdm
 gdown
-aria2p
-wget

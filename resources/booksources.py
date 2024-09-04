@@ -1,235 +1,256 @@
-"""Class for Book sources"""
+'''Book Sources'''
 
-import sys
-from functools import cache
+#Importing necessary modules
+import os
+import re
+import shutil
+import subprocess
+import time
 
 import requests
+import urllib3.exceptions
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.common.exceptions import (NoSuchElementException,
+                                        SessionNotCreatedException,
+                                        TimeoutException, WebDriverException)
+from selenium.webdriver.common.by import By
+from tqdm.auto import tqdm
 
+# Global variables.
+# Selenium Chrome options to lessen the memory usage.
+options = webdriver.ChromeOptions()
+options.add_experimental_option('prefs',  {
+    "download.default_directory": os.getcwd(),
+    "download.prompt_for_download": False,
+    "download.directory_upgrade": True,
+    "plugins.always_open_pdf_externally": True
+    }
+)
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--headless=new")
+options.add_argument("--disable-renderer-backgrounding")
+options.add_argument("--disable-background-timer-throttling")
+options.add_argument("--disable-backgrounding-occluded-windows")
+options.add_argument("--disable-client-side-phishing-detection")
+options.add_argument("--disable-crash-reporter")
+options.add_argument("--disable-oopr-debug-crash-dump")
+options.add_argument("--no-crash-upload")
+options.add_argument("--disable-gpu")
+options.add_argument("--disable-extensions")
+options.add_argument("--disable-low-res-tiling")
+options.add_argument("--log-level=3")
+options.add_argument("--silent")
+options.page_load_strategy = 'eager'
+driver = webdriver.Chrome(options=options)
+# Getting the current directory.
+bookcli = os.getcwd()
 
 class Booksources:
-    """Class and the objects for book scraping"""
+    '''Book methods'''
 
-    # Method 1: Corresponds to "Libgen.is" website and uses requests to
-    # extract the books and sends download links.
-
-    # Defining the method that takes argument 'search_term'.
-    @cache
-    def libgen(self, search_term):
-        """Function for scraping Libgen."""
-        # All the necessary urls for scraping.
-        url = "https://libgen.is/search.php?req=" + search_term
-        book_url = "https://libgen.is/"
-        booksdl_url = "https://cdn3.booksdl.org/"
-        libgen_url = "https://libgen.li/"
-        # try and except to catch errors produced by requests.
+    def exists(self, element):
         try:
-            # Sending get request to the "libgen.is" website
-            response = requests.get(url, timeout=2)
-            # Parsering the response with "BeauitifulSoup".
-            soup = BeautifulSoup(response.content, "html.parser")
-            # Finding the specific piece of html body that corresponds with book ids, names
-            # and urls.
-            tr_html = soup.find_all("tr", attrs={"bgcolor": "#C6DEFF"})
-            id_list = []
-            # Iterating every "td" tag in "tr" tag.
-            for td_html in tr_html:
-                # Iterating every "id" property in first "td" tag or [0].
-                for each_id in td_html.find_all("td")[0]:
-                    # Appending all of the ids found into "id_list".
-                    id_list.append(each_id.text)
-            # Creating empty lists "link_list" "name_list".
-            link_list = []
-            name_list = []
-            # Iterating each id in "id_list" as i.
-            for i in id_list:
-                # Iterating every "td_html" tag in "tr_html" tag.
-                for td_html in tr_html:
-                    # Iterating every "a href" tag in td_html.
-                    for each_element in td_html.find_all(
-                        "a", attrs={"id": i}, href=True
-                    ):
-                        # Appending all of the urls found into "link_list"
-                        # with addition of book_url.
-                        link_list.append(book_url + each_element["href"])
-                        # Getting the name from the next element to "each_element" variable in html.
-                        names = each_element.next_element
-                        # Appending all of the names found into "name_list".
-                        name_list.append(names)
-            # Creating an empty "index_link" and iterating as well as appending numbers 1 to 30.
-            index_list = []
-            for i in range(1, 30):
-                index_list.append(i)
-            # Creating dictionaries that takes length from "name_list"
-            # and "link_list" respectively witk key from "index_list" and value
-            # from "name_list" and "link_list" respectively.
-            names_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
-            urls_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
-            # Printing the names of the books with imdex for user to select.
-            index_int = 1
+            driver.find_element(By.CSS_SELECTOR,element)
+        except NoSuchElementException:
+            return False
+        return True
 
-            for title in name_list:
-                index = str(index_int)
-                print(index + " " + title)
-                index_int += 1
-            # Try and except to catch "ValueError".
-            try:
-                # If statement in case no book was found.
-                if not link_list:
-                    print(f'No book with title "{search_term}" found')
+    def core(self, html_tag, baseurl, source):
+        # Creating three lists "link_list", "name_list" and "index_list".
+        link_list = []
+        name_list = []
+        index_list = []
+        # Enumerating links from html_tag taken from sources with i for index.
+        # Adding exceptional cases for each sources.
+        if source == "libgen":
+            extension_list = []
+            for i, a_html in enumerate(html_tag, start=1):
+                for links in a_html.find_all("a", id=True, href=True):
+                    link_list.append(baseurl + links["href"].split(".")[1].strip())
+                    name_list.append(links.next_element.text)
+                    index_list.append(i)
+            for td_html in html_tag:
+                for extension in td_html.find_all("td", nowrap=True)[2]:
+                    extension_list.append(extension.text)
+        elif source == "annasarchive":
+            for i, links in enumerate(html_tag, start=1):
+                link_list.append(baseurl + links["href"])
+                for name in links.find("h3"):
+                    name_list.append(name.text.strip())
+                index_list.append(i)
+        elif source == "glodls":
+            for i, html_td in enumerate(html_tag, start=1):
+                for links in html_td.find_all("a", title=True, href=True):
+                    link_list.append(baseurl + links["href"])
+                    name_list.append(links.text.strip())
+                index_list.append(i)
+        elif source == "annasarchive_chapter":
+            for i, links in enumerate(html_tag, start=1):
+                if "/fast" in links["href"].split("_")[0] or "/slow" in links["href"].split("_")[0]:
+                    link_list.append(baseurl + links["href"])
+                    name_list.append(links.text.strip())
+                    index_list.append(i)
+                else:
+                    link_list.append(links["href"])
+                    name_list.append(links.text.strip())
+                    index_list.append(i)
+        else:
+            for i, links in enumerate(html_tag, start=1):
+                link_list.append(baseurl + links["href"])
+                name_list.append(links.text.strip())
+                index_list.append(i)
+        # Creating two dictionary that take key as index and value as items from "link_list" and "name_list" respectively.
+        url_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
+        name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
+        if source == "libgen":
+            extension_dict = {index_list[i]: extension_list[i] for i in range(len(extension_list))}
+
+        # Making UI to get user input from name_list.
+        for key, value in name_dict.items():
+            print(f'{key}. {value}')
+        try:
+            # If statement in case no manga/chapter was found.
+            if not link_list:
+                print(f'Sorry could not found anything :(!')
+            else:
                 # Matching the user selection with "urls_dict" dictionary to get its value.
-                book_selection = int(input("\nSelect the book index number: "))
-                if book_selection in urls_dict:
-                    # Getting the book name and link by matching the index number from dictionaries.
-                    book_link = f"{urls_dict[book_selection]}"
-                    book_name = f"{names_dict[book_selection]}"
+                selection = int(input("\nSelect the index number: "))
+                if selection in url_dict:
+                    # Getting the name and link by matching the index number from dictionaries.
+                    link = f"{url_dict[selection]}"
+                    name = f"{name_dict[selection]}"
+                    if source == "libgen":
+                        name = f"{name_dict[selection]}.{extension_dict[selection]}"
                     print("Fetching, please wait...")
-                    # Starting the requests session.
-                    session = requests.Session()
-                    # Sending get request to the "book_link" website.
-                    book_response = session.get(book_link, timeout=2)
-                    # Parsering the response with "BeauitifulSoup".
-                    book_soup = BeautifulSoup(book_response.content, "html.parser")
-                    # Finding the libgen.li link from "a" tag through a_html_book.
-                    a_html_book = book_soup.find(
-                        "a", attrs={"title": "Libgen.li"}, href=True
-                    )
-                    # Storing "libgen.li" link in variable.
-                    download_link = a_html_book["href"]
-                    # Sending get request to the "download_link" website.
-                    download_response = session.get(download_link, timeout=2)
-                    # Parsering the response with "BeauitifulSoup".
-                    download_soup = BeautifulSoup(
-                        download_response.content, "html.parser"
-                    )
-                    # Finding the "a" tag from "td" tag.
-                    td_html_download = download_soup.find(
-                        "td", attrs={"bgcolor": "#A9F5BC"}
-                    )
-                    # Finding the adfree direct download link from "a" tag.
-                    a_html_download = td_html_download.find("a", href=True)
-                    # Storing link and adding main website link with it.
-                    booksdl_link = f'{booksdl_url}{a_html_download["href"]}'
-                    libgen_link = f'{libgen_url}{a_html_download["href"]}'
-                    print(f"\nName: {book_name}\n{booksdl_link}\n{libgen_link}")
+                    return link, name
+
                 else:
                     raise ValueError
-            except ValueError:
-                print("Invalid integer. The number must be in the range.")
-        except requests.exceptions.RequestException:
-            print("Network Error!")
-            sys.exit()
+        except ValueError:
+            print("Invalid integer. The number must be in the range.")
+    def download(self, book_name, url):
+        # Making the folder and opening it
+        name = re.sub('[^a-z,0-9.]', '_', book_name, flags=re.IGNORECASE)
+        with requests.get(url, stream = True) as res:
+            # Checking header to get the content length, in bytes.
+            total_length = int(res.headers.get("Content-Length"))
+            # Checking if request was valid.
+            if res.status_code == 200:
+                # Implement progress bar via tqdm.
+                with tqdm.wrapattr(res.raw, "read", total=total_length, desc="")as raw:
+                    # Downloading image via shutil.
+                    with open(name,'wb') as f:
+                        shutil.copyfileobj(raw, f)
+                print('Book sucessfully Downloaded: ',name)
+            else:
+                print('Book couldn\'t be retrieved')
 
-    # Method 2: Corresponds to "Annas-archive.org" website and uses requests to
-    # extract the books and sends download links.
-
-    # Defining the method that takes argument 'search_term'.
-    @cache
-    def anna_archive(self, search_term):
-        """Function for scraping Anna's Archive."""
-        # All the necessary urls for scraping.
-        url = "https://annas-archive.org/search?q=" + search_term
-        book_url = "https://annas-archive.org"
-        # try and except to catch errors produced by requests.
+    def libgen(self,search_term):
+        # Url to access the searching.
+        url = f"https://libgen.is/search.php?req={search_term}&open=0&res=50&view=simple&phrase=1&column=title"
+        # Url to access the base website
+        baseurl = "https://libgen.li/ads."
+        # Url to access the downloaf website
+        downloadurl = "https://libgen.li/"
         try:
-            # Sending get request to the "annas-archive.org" website
-            response = requests.get(url, timeout=2)
+            # Sending request to the webpage.
+            driver.get(url)
+            # Getting html page with BeautifulSoup module
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            # Finding all the mentioned elements from webpage.
+            html_tag = soup.find_all("tr", attrs={"valign": "top", "bgcolor": "#C6DEFF"})
+            # Using core method as function to get rid of repeating the same lines.
+            source = "libgen"
+            book_tuple = self.core(html_tag, baseurl, source)
+            book_link = book_tuple[0]
+            book_name = book_tuple[1]
+            # Sending get request to the website.
+            driver.get(book_link)
             # Parsering the response with "BeauitifulSoup".
-            soup = BeautifulSoup(response.content, "html.parser")
-            # Finding the specific piece of html body that corresponds with
-            # book links and names in "div" and "h3" tags respectively.
-            div_html = soup.find_all(
-                "div", class_="h-[125] flex flex-col justify-center"
-            )
-            h3_html = soup.find_all(
-                "h3",
-                class_="max-lg:line-clamp-[2] lg:truncate leading-"
-                "[1.2] lg:leading-[1.35] text-md lg:text-xl font-"
-                "bold",
-            )
-            # Creating an empty list "link_list" and iterating each link found in "div"
-            # tag and appending them into the list.
-            link_list = []
-            for links in div_html:
-                for each_link in links.find_all("a", href=True):
-                    link_list.append(book_url + each_link["href"])
-            # Creating an empty list "name_list" and iterating each name found
-            # in "h3" tag and appending them into the list.
-            name_list = []
-            for names in h3_html:
-                for name in names:
-                    name_list.append(name.string)
-            # Creating an empty "index_link" and iterating as well as appending numbers 1 to 30.
-            index_list = []
-            for i in range(1, 30):
-                index_list.append(i)
-            # Creating dictionaries that takes length from "name_list"
-            # and "link_list" respectively witk key from "index_list" and value
-            # from "name_list" and "link_list" respectively.
-            names_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
-            urls_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
-            # Printing the names of the books with imdex for user to select.
-            index_int = 1
-            for title in name_list:
-                index = str(index_int)
-                print(index + " " + title)
-                index_int += 1
-            # Try and except to catch "ValueError".
-            try:
-                # If statement in case no book was found.
-                if not link_list:
-                    print(f'No book with title "{search_term}" found')
-                # Matching the user selection with "urls_dict" dictionary to get its value.
-                book_selection = int(input("\nSelect the book index number: "))
-                if book_selection in urls_dict:
-                    # Getting the book name and link by matching the index number from dictionaries.
-                    book_link = f"{urls_dict[book_selection]}"
-                    book_name = f"{names_dict[book_selection]}"
-                    print("Fetching, please wait...")
-                    # Sending get request to the "book_link" website
-                    book_response = requests.get(book_link, timeout=2)
-                    # Parsering the response with "BeauitifulSoup".
-                    book_soup = BeautifulSoup(book_response.content, "html.parser")
-                    # Finding the specific piece of html body that corresponds with
-                    # download url in "ul" tag.
-                    ul_html = book_soup.find("ul", class_="list-inside mb-4 ml-1")
-                    # Printing the name of the book.
-                    print(f"\nName: {book_name}\n")
-                    # Iterating each link found in "ul" tag and printing it.
-                    for each_link in ul_html.find_all(
-                        "a", class_="js-download-link", href=True
-                    ):
-                        print(f'{book_url}{each_link["href"]}')
-                    print(
-                        "\n\nThe links will lead to cloudflare human verifaction "
-                        "if it fails to redirect just paste the link and try again"
-                    )
-                else:
-                    raise ValueError
-            except ValueError:
-                print("Invalid integer. The number must be in the range.")
-        except requests.exceptions.RequestException:
+            book_soup = BeautifulSoup(driver.page_source, "html.parser")
+            # Finding all the mentioned elements in the webpage.
+            td_html = book_soup.find("td", attrs={"align": "center", "valign": "top", "bgcolor": "#A9F5BC"})
+            html_tag = td_html.find("a") 
+            url = downloadurl + html_tag["href"]
+            self.download(book_name, url)
+        except SessionNotCreatedException:
+            print("If you are not using android then install from win_linux_requirement.txt file")
+        except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
             print("Network Error!")
-            sys.exit()
+        except (TypeError, urllib3.exceptions.ProtocolError):
+            print("Bad file.")
 
-    # Method 3: Corresponds to "Z-library.rs" website and uses requests to
-    # extract the books and sends download links.
+    def anna_archive(self,search_term):
+        # Url to access the searching.
+        url = f"https://annas-archive.org/search?index=&page=1&q={search_term}&desc=1&termtype_1=title&termval_1=&content=book_nonfiction&content=book_fiction&content=book_unknown&ext=pdf&ext=epub&sort=&lang=en"
+        # Url to access the base website
+        baseurl = "https://annas-archive.org"
+        try:
+            # Sending request to the webpage.
+            driver.get(url)
+            # Getting html page with BeautifulSoup module
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            # Finding all the mentioned elements from webpage.
+            html_tag = soup.find_all("a", class_="js-vim-focus custom-a flex items-center relative left-[-10px] w-[calc(100%+20px)] px-2.5 outline-offset-[-2px] outline-2 rounded-[3px] hover:bg-black/6.7 focus:outline")
+            # Using core method as function to get rid of repeating the same lines.
+            source = "annasarchive"
+            book_tuple = self.core(html_tag, baseurl, source)
+            book_link = book_tuple[0]
+            book_name = book_tuple[1]
+            # Sending get request to the website.
+            driver.get(book_link)
+            # Parsering the response with "BeauitifulSoup".
+            book_soup = BeautifulSoup(driver.page_source, "html.parser")
+            # Finding all the mentioned elements in the webpage.
+            html_tag = book_soup.find_all("a", class_="js-download-link")
+            source = "annasarchive_chapter"
+            book_tuple = self.core(html_tag, baseurl, source)
+            book_link = book_tuple[0] 
+            print(f"{book_name}\n{book_link}")
+            subprocess.call(["am", "start", "-a", "android.intent.action.VIEW", "-d", book_link])
+        except SessionNotCreatedException:
+            print("If you are not using android then install from win_linux_requirement.txt file")
+        except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+            print("Network Error!")
+        except TypeError:
+            pass
+        except FileNotFoundError:
+            pass
 
-    # Defining the method that takes argument 'search_term'.
-    def zlibrary(self, search_term):
-        """Function for scraping Zlibrary."""
-
-        # Under Progress
-        # login_url = 'https://singlelogin.rs/'
-        # redirect_url = 'https://z-library.rs/'
-        # payload = {
-        #
-        # }
-        # with requests.session() as session:
-        #     session.post(login_url, data=payload)
-        #     response = session.get(login_url)
-        #     soup = BeautifulSoup(response.content, "html.parser")
-        #     f = open("file.txt", "a")
-        #     f.write(soup.prettify())
-        #     f.close()
-        # Under Progress
+    def glodls(self,search_term):
+        # Url to access the searching.
+        url = f"https://glodls.to/search_results.php?search={search_term}&cat=74&incldead=0&inclexternal=0&lang=0&sort=seeders&order=desc"
+        # Url to access the base website
+        baseurl = "https://glodls.to"
+        try:
+            # Sending request to the webpage.
+            driver.get(url)
+            time.sleep(1)
+            # Getting html page with BeautifulSoup module
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            # Finding all the mentioned elements from webpage.
+            html_tag = soup.find_all("td", class_="ttable_col2")
+            # Using core method as function to get rid of repeating the same lines.
+            source = "glodls"
+            book_tuple = self.core(html_tag, baseurl, source)
+            book_link = book_tuple[0]
+            # Sending get request to the website.
+            driver.get(book_link)
+            # Parsering the response with "BeauitifulSoup".
+            book_soup = BeautifulSoup(driver.page_source, "html.parser")
+            # Finding all the mentioned elements in the webpage.
+            html_td = book_soup.find("td", attrs={"align": "center", "valign": "middle", "width": "204"}) 
+            html_tag = html_td.find("a")
+            url = baseurl + "/" + html_tag["href"]
+            dir = os.getcwd()
+            # Calling the aria2c module to download.
+            args = ["aria2c", "--file-allocation=none", "--seed-time=0", "-d", dir, url]
+            subprocess.call(args)
+        except SessionNotCreatedException:
+            print("If you are not using android then install from win_linux_requirement.txt file")
+        except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+            print("Network Error!")
+        except TypeError:
+            pass
