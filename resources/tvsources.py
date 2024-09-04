@@ -1,11 +1,10 @@
-'''Anime Sources'''
+'''TV Sources'''
 
 #Importing necessary modules
 import os
 import re
 import subprocess
 
-import gdown
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -37,8 +36,8 @@ driver = webdriver.Chrome(options=options)
 # Getting the current directory.
 bookcli = os.getcwd()
 
-class Animesources:
-    '''Anime functions'''
+class Tvsources:
+    '''TV Sources'''
 
     def exists(self, element):
         try:
@@ -54,25 +53,26 @@ class Animesources:
         index_list = []
         # Enumerating links from html_tag taken from sources with i for index.
         # Adding exceptional cases for each sources.
-        if source == "nyaa":
+        if source == "1337x":
             for i, a_html in enumerate(html_tag, start=1):
-                for links in a_html.find_all("a", title=True, class_=None, href=True):
+                for links in a_html.find_all("a", href=True):
                     link_list.append(baseurl + links["href"])
-                    name_list.append(links["title"].strip())
+                    name_list.append(links.text.strip())
                     index_list.append(i)
-        elif source == "kayoanime":
-            for a_html in html_tag:
-                for i, links in enumerate(a_html.find_all("a", class_="post-thumb", href=True), start=1):
-                    link_list.append(links["href"])
-                    name_list.append(links["aria-label"].strip())
-                    index_list.append(i)
+        elif source == "lime":
+            for i, tr_html in enumerate(html_tag, start=1):
+                for a_html in tr_html.find_all("div", class_="tt-name"):
+                    for links in a_html.find_all("a", rel=True):
+                        print(links)
+                        link_list.append(baseurl + links["href"])
+                    for links in a_html.find_all("a", rel=None):
+                        name_list.append(links.text.strip())
+                index_list.append(i)
         else:
             for i, links in enumerate(html_tag, start=1):
                 link_list.append(baseurl + links["href"])
                 name_list.append(links.text.strip())
                 index_list.append(i)
-            link_list.reverse()
-            name_list.reverse()
         # Creating two dictionary that take key as index and value as items from "link_list" and "name_list" respectively.
         url_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
         name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
@@ -85,107 +85,77 @@ class Animesources:
                 print(f'Sorry could not found anything :(!')
             else:
                 # Matching the user selection with "urls_dict" dictionary to get its value.
-                while True:
-                    selection = int(input("\nSelect the index number: "))
-                    if selection in url_dict:
-                        # Getting the name and link by matching the index number from dictionaries.
-                        link = f"{url_dict[selection]}"
-                        name = f"{name_dict[selection]}"
-                        print("Fetching, please wait...")
-                        return link, name
-                    else:
-                        raise ValueError
+                selection = int(input("\nSelect the index number: "))
+                if selection in url_dict:
+                    # Getting the name and link by matching the index number from dictionaries.
+                    link = f"{url_dict[selection]}"
+                    name = f"{name_dict[selection]}"
+                    print("Fetching, please wait...")
+                    return link, name
+                else:
+                    raise ValueError
         except ValueError:
             print("Invalid integer. The number must be in the range.")
-    def download(self, anime_name, url):
+    def download(self, name, anime_name, url):
         # Making the folder and opening it
-        anime = re.sub('[^a-z,0-9]', '_', anime_name, flags=re.IGNORECASE)
-        if not os.path.isdir(anime):
-            os.mkdir(anime)
-            os.chdir(anime)
+        if not os.path.isdir(anime_name):
+            os.mkdir(anime_name)
+            os.chdir(anime_name)
         else:
-            os.chdir(anime)
+            os.chdir(anime_name)
         # Downloading the file with wget as it is fast and has its own progress bar.
-        args = ['wget', url]
+        args = ['wget', '-O', name, url]
         subprocess.call(args)
         print("Download Complete.")
 
-    def kayoanime(self,search_term):
+    def vadapav(self,search_term):
         # Url to access the searching.
-        url = "https://kayoanime.com/?s=" + search_term
-        baseurl = ""
+        url = "https://vadapav.mov/s/" + search_term
         # Url to access the base website.
+        baseurl = "https://vadapav.mov"
         try:
             # Sending request to the webpage.
             driver.get(url)
             # Getting html page with BeautifulSoup module
             soup = BeautifulSoup(driver.page_source, "html.parser")
-            # Finding all the "a" elements from webpage.
-            html_tag = soup.find_all("ul", class_="posts-items")
-            # Using core method as function to get rid of repeating the same lines.
-            source = "kayoanime"
-            anime_tuple = self.core(html_tag, baseurl, source)
-            anime_link = anime_tuple[0]
-            # Sending get request to the "manga_link" website.
-            driver.get(anime_link)
-            # Parsering the response with "BeauitifulSoup".
-            anime_soup = BeautifulSoup(driver.page_source, "html.parser")
-            # Finding all the "a" elements in the webpage.
-            html_tag = anime_soup.find("a", target="_blank")
-            url = html_tag["href"].split("?")[0]
-            gdown.download_folder(url)
-        except SessionNotCreatedException:
-            print("If you are not using android then install from win_linux_requirement.txt file")
-        except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-            print("Network Error!")
-        except TypeError:
-            pass
-        except (RuntimeError, gdown.exceptions.FileURLRetrievalError, gdown.exceptions.FolderContentsMaximumLimitError, PermissionError):
-            print("Google file is either private or unavilable")
-
-    def tokyoinsider(self, search_term):
-        # Url to access the searching.
-        url = "https://www.tokyoinsider.com/anime/search?k=" + search_term
-        # Url to access the base website.
-        baseurl = "https://www.tokyoinsider.com"
-        try:
-            # Sending request to the webpage.
-            driver.get(url)
-            # Getting html page with BeautifulSoup module
-            soup = BeautifulSoup(driver.page_source, "html.parser")
-            # Finding all the "a" elements from webpage.
-            html_tag = soup.find_all("a", attrs={"style":"font: bold 14px verdana;"})
+            # Finding all the mentioned elements from webpage.
+            html_tag = soup.find_all("a", class_="directory-entry wrap")
             # Using core method as function to get rid of repeating the same lines.
             source = ""
-            anime_tuple = self.core(html_tag, baseurl, source)
-            anime_link = anime_tuple[0]
-            anime_name = anime_tuple[1]
-            # Sending get request to the "manga_link" website.
-            driver.get(anime_link)
+            series_tuple = self.core(html_tag, baseurl, source)
+            series_link = series_tuple[0]
+            series_name = series_tuple[1]
+            # Sending request to the webpage.
+            driver.get(series_link)
+            # Getting html page with BeautifulSoup module
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            # Finding all the mentioned elements from webpage.
+            html_tag = soup.find_all("a", class_="directory-entry wrap") 
+            if not len(html_tag) == 1:
+                driver.get(series_link)
+                # Getting html page with BeautifulSoup module
+                series_soup = BeautifulSoup(driver.page_source, "html.parser")
+                # Finding all the mentioned elements from webpage.
+                html_tag = series_soup.find_all("a", class_="directory-entry wrap")[1:]
+                # Using core method as function to get rid of repeating the same lines.
+                source = ""
+                season_tuple = self.core(html_tag, baseurl, source)
+                link = season_tuple[0]
+            else:
+                link = series_link
+                print(link)
+            # Sending get request to the website.
+            driver.get(link)
             # Parsering the response with "BeauitifulSoup".
-            anime_soup = BeautifulSoup(driver.page_source, "html.parser")
-            # Finding all the "a" elements in the webpage.
-            html_tag = anime_soup.find_all(
-                    "a", class_="download-link"
-            )
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            # Finding all the mentioned elements in the webpage.
+            html_tag = soup.find_all("a", class_="file-entry wrap")
             # Using core method as function to get rid of repeating the same lines.
             source = ""
             episode_tuple = self.core(html_tag, baseurl, source)
-            episode_link = episode_tuple[0]
-            # Sending request with selenium webdriver.
-            driver.get(episode_link)
-            # Parsering the response with "BeauitifulSoup".
-            episode_soup = BeautifulSoup(
-                driver.page_source, "html.parser"
-            )
-            # Getting the working download link from html webpage.
-            html_tag = episode_soup.find_all("a", href=lambda t: t and "media" in t)
-            source = ""
-            baseurl = ""
-            download_tuple = self.core(html_tag, baseurl, source)
-            url = download_tuple[0]
-            self.download(anime_name, url)
-            print("\nDownload Complete.")
+            url = episode_tuple[0]
+            name = episode_tuple[1]
+            self.download(name, series_name, url)  
         except SessionNotCreatedException:
             print("If you are not using android then install from win_linux_requirement.txt file")
         except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
@@ -193,34 +163,60 @@ class Animesources:
         except TypeError:
             pass
 
-    def nyaa(self, search_term):
+    def lime(self, search_term):
         # Url to access the searching.
-        url = f'https://nyaa.si/?q={search_term}&f=0&c=1_2&s=seeders&o=desc'
+        url = f"https://www.limetorrents.lol/search/all/{search_term}/seeds/1/"
         # Url to access the base website.
-        baseurl = "https://nyaa.si"
+        baseurl = ""
         try:
             # Sending request to the webpage.
             driver.get(url)
             # Getting html page with BeautifulSoup module
             soup = BeautifulSoup(driver.page_source, "html.parser")
-            # Finding all the "a" elements from webpage.
-            html_tag = soup.find_all("td", colspan="2")
+            # Finding all the mmentioned elements from webpage.
+            html_tag = soup.find_all("tbody")[1]
             # Using core method as function to get rid of repeating the same lines.
-            source = "nyaa"
-            anime_tuple = self.core(html_tag, baseurl, source)
-            anime_link = anime_tuple[0]
-            # Sending get request to the "manga_link" website.
-            driver.get(anime_link)
-            # Parsering the response with "BeauitifulSoup".
-            anime_soup = BeautifulSoup(driver.page_source, "html.parser")
-            # Finding all the "a" elements in the webpage.
-            html_tag = anime_soup.find(
-                    "a", class_="card-footer-item"
-            )
-            driver.quit()
+            source = "lime"
+            series_tuple = self.core(html_tag, baseurl, source)
+            url = series_tuple[0]
             dir = os.getcwd()
-            # Getting the download link and uaing aria2p module to download magnet link.
+            # Using the aria2c module to download.
+            args = ["aria2c", "--file-allocation=none", "--seed-time=0", "-d", dir, url]
+            subprocess.call(args)
+        except SessionNotCreatedException:
+            print("If you are not using android then install from win_linux_requirement.txt file")
+        except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+            print("Network Error!")
+        except TypeError:
+            pass
+
+    def torrent(self, search_term):
+        # Url to access the searching.
+        url = f'https://1337x.to/sort-search/{search_term}/seeders/desc/1/'
+        # Url to access the base website.
+        baseurl = "https://1337x.to"
+        try:
+            # Sending request to the webpage.
+            driver.get(url)
+            # Getting html page with BeautifulSoup module
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            # Finding all the mentioned elements from webpage.
+            html_tag = soup.find_all("td", class_="coll-1 name")
+            # Using core method as function to get rid of repeating the same lines.
+            source = "1337x"
+            series_tuple = self.core(html_tag, baseurl, source)
+            series_link = series_tuple[0]
+            # Sending get request to the website.
+            driver.get(series_link)
+            # Parsering the response with "BeauitifulSoup".
+            series_soup = BeautifulSoup(driver.page_source, "html.parser")
+            # Finding all the mentioned elements in the webpage.
+            html_tag = series_soup.find(
+                    "a", id="id1"
+            )
+            # Using aria2c module to download.
             url = html_tag['href']
+            dir = os.getcwd()
             args = ["aria2c", "--file-allocation=none", "--seed-time=0", "-d", dir, url]
             subprocess.call(args)
         except SessionNotCreatedException:
