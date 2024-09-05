@@ -13,7 +13,7 @@ Step 2: Copy and paste
 ```
 pkg update
 termux-setup-storage
-pkg install python git x11-repo tur-repo aria2 wget
+pkg install python git openssl x11-repo tur-repo aria2 wget
 pkg install chromium
 git clone https://github.com/aatihonora/bookcli/
 cd bookcli
@@ -39,7 +39,7 @@ Step 3: Now write wsl to set it up.
 Step 4: From here linux and windows have same process, use these commands to properly install it.
 ```
 sudo apt update
-sudo apt install python3 chromium-browser git aria2 wget
+sudo apt install python3 chromium-browser git aria2 wget openssl
 git clone https://github.com/aatihonora/bookcli/
 cd bookcli
 pip install -r win_linux_requirements.txt
