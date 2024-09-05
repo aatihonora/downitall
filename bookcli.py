@@ -4,9 +4,7 @@
 import os
 import sys
 
-from resources import (Animesources, Booksources, Mangasources, Musicsources,
-                       Schoolsources, Tvsources)
-
+from resources import (Animesources, Booksources, Mangasources, Musicsources, Tvsources)
 # Global variables.
 books = Booksources()
 manga = Mangasources()
