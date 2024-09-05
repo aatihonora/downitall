@@ -58,7 +58,7 @@ python bookcli.py
 3. Glodls [Courses] [Torrent]
 
 ## Manga
-1. Bato.to [Manga/Manhwa/Manhua]
+1. Bato.to [Manhwa/Manhua]
 2. Mangasee [Manga]
 3. ComicExtra [Comic]
 
