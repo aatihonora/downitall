@@ -11,7 +11,6 @@ from resources import (Animesources, Booksources, Mangasources, Musicsources,
 books = Booksources()
 manga = Mangasources()
 anime = Animesources()
-school = Schoolsources()
 tv = Tvsources()
 music = Musicsources()
 # Space for functions start from here
@@ -136,17 +135,6 @@ def choice():
         case "6":
             clear()
             sys.exit()
-        case "18":
-            search_term = input("\nEnter the title of the anime: ")
-            match input(
-                "\nSelect the website: \n1. R38\n2. Nyaa"
-                "\n3. Kayoanime\n4. Restart\n5. Exit"
-                "\n\nEnter index number: "
-            ):
-                case "1":
-                    school.r34(search_term)
-
-
         case _:
             print("\nInvalid value")
 
