@@ -64,7 +64,7 @@ python bookcli.py
 
 ## Anime
 1. TokyoInsider [Anime]
-2. Nyaa.si [Torrent] [Anime]
+2. Nyaa.si [Anime] [Torrent]
 3. Kayoanime [Anime]
 
 ## TV-Series/Movies
