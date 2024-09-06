@@ -142,7 +142,6 @@ class Tvsources:
                 link = season_tuple[0]
             else:
                 link = series_link
-                print(link)
             # Sending get request to the website.
             driver.get(link)
             # Parsering the response with "BeauitifulSoup".
