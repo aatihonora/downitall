@@ -63,6 +63,7 @@ class Tvsources:
             for i, tr_html in enumerate(html_tag, start=1):
                 for a_html in tr_html.find_all("div", class_="tt-name"):
                     for links in a_html.find_all("a", rel=True):
+                        print(links)
                         link_list.append(baseurl + links["href"])
                     for links in a_html.find_all("a", rel=None):
                         name_list.append(links.text.strip())
@@ -142,6 +143,7 @@ class Tvsources:
                 link = season_tuple[0]
             else:
                 link = series_link
+                print(link)
             # Sending get request to the website.
             driver.get(link)
             # Parsering the response with "BeauitifulSoup".

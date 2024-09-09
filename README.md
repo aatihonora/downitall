@@ -13,8 +13,7 @@ Step 2: Copy and paste
 ```
 pkg update
 termux-setup-storage
-pkg install python git openssl x11-repo tur-repo aria2 wget
-pkg install chromium
+pkg install python git x11-repo tur-repo chromium aria2 wget
 git clone https://github.com/aatihonora/bookcli/
 cd bookcli
 pip install -r android_requirements.txt
@@ -39,7 +38,7 @@ Step 3: Now write wsl to set it up.
 Step 4: From here linux and windows have same process, use these commands to properly install it.
 ```
 sudo apt update
-sudo apt install python3 chromium-browser git aria2 wget openssl
+sudo apt install python3 chromium-browser git aria2 wget
 git clone https://github.com/aatihonora/bookcli/
 cd bookcli
 pip install -r win_linux_requirements.txt
@@ -58,13 +57,13 @@ python bookcli.py
 3. Glodls [Courses] [Torrent]
 
 ## Manga
-1. Bato.to [Manhwa/Manhua]
+1. Bato.to [Manga/Manhwa/Manhua/Comic]
 2. Mangasee [Manga]
 3. ComicExtra [Comic]
 
 ## Anime
 1. TokyoInsider [Anime]
-2. Nyaa.si [Anime] [Torrent]
+2. Nyaa.si [Torrent] [Anime]
 3. Kayoanime [Anime]
 
 ## TV-Series/Movies
