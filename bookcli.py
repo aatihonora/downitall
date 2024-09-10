@@ -70,11 +70,11 @@ def choice():
         search_term = input("Enter the title of the Manga: ")
         select = questionary.select("Select item", choices=["Bato", "Mangasee", "ComicExtra", "Reset"]).ask()
         if select == "Bato":
-            manga.bato(search_term)
+            manga.Bato().bato(search_term)
         elif select == "Mangasee":
-            manga.mangasee(search_term)
+            manga.Mangasee().mangasee(search_term)
         elif select == "ComicExtra":
-            manga.comicextra(search_term)
+            manga.Comicextra().comicextra(search_term)
         else:
             choice()
     elif type == "Music":

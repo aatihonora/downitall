@@ -111,7 +111,7 @@ class Booksources:
         name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
         try:
             # If statement in case no manga/chapter was found.
-            if not link_list:
+            if len(link_list) == 2:
                 print(f'Sorry could not found anything :(!')
             else:
                 # Matching the user selection with "urls_dict" dictionary to get its value.
@@ -148,18 +148,14 @@ class Booksources:
     # Defining the function for retrying the user_choice function.
     def retry(self, source, search_term, choice):
         # Using match case argument to see which class called the function.
-        match input("\n1. Continue \n2. Exit\n\nEnter the index: "):
-            case "1":
-                if source == "libgen":
-                    Booksources().Libgen().libgen_search(search_term, choice)
-                if source == "annasarchive":
-                    Booksources().Annas_Archive().annas_archive_search(search_term, choice)
-                else:
-                    Booksources().Torrent().torrent_search(search_term)
-            case "2":
-                pass
-            case _:
-                pass
+        answer = questionary.select("Do you want to download another file? ", choices=["Yes", "No"]).ask()
+        if answer == "Yes":
+            if source == "libgen":
+                Booksources().Libgen().libgen_search(search_term, choice)
+            elif source == "annasarchive":
+                Booksources().Annas_Archive().annas_archive_search(search_term, choice)
+            else:
+                Booksources().Torrent().torrent_search(search_term)
 ############################################################################
     class Libgen:
         def libgen_search(self, search_term, choice):
@@ -168,7 +164,7 @@ class Booksources:
             index = 1
             # Making search term better for url through regex.
             term = re.sub("\W", "+", search_term)
-            # Checking weather search if for title or author/
+            # Checking weather search is for title or author.
             if choice == 1:
                 search_type = "t"
             else:
@@ -213,9 +209,9 @@ class Booksources:
                     for links in html_tag:
                         link_list.append(base_url + links["href"])
                     # Calling the user choice function.
-                    book_tuple = Booksources().user_choice(name_list, link_list, index_list, page_url)
-                    url = book_tuple[0]
-                    name = book_tuple[1]
+                    data = Booksources().user_choice(name_list, link_list, index_list, page_url)
+                    url = data[0]
+                    name = data[1]
                     index = Booksources().page_navigation(name, pages, index)
                     web_url = url + str(index)
                     if name != "Next Page" and name != "Previous Page":
@@ -223,9 +219,9 @@ class Booksources:
                 # Sending get request to the website.
                 driver.get(url)
                 # Parsering the response with "BeauitifulSoup".
-                book_soup = BeautifulSoup(driver.page_source, "html.parser")
+                soup = BeautifulSoup(driver.page_source, "html.parser")
                 # Finding all the mentioned elements in the webpage.
-                td_html = book_soup.find("td", attrs={"align": "center", "valign": "top", "bgcolor": "#A9F5BC"})
+                td_html = soup.find("td", attrs={"align": "center", "valign": "top", "bgcolor": "#A9F5BC"})
                 html_tag = td_html.find("a") 
                 url = base_url + html_tag["href"]
                 Booksources().download(name, url)
@@ -238,31 +234,38 @@ class Booksources:
                 pass
             except AttributeError:
                 print(f"No book with title {search_term} found :(")
+            except KeyboardInterrupt:
+                print("Cancelled by user.")
 ############################################################################
     class Annas_Archive:
         def annas_archive_search(self,search_term, choice):
             source = "annas_archive"
             index = 1
+            # Making search term better for url through regex.
             term = re.sub("\W", "+", search_term)
+            # Checking weather search is for title or author.
             if choice == 1:
                 search_type = "title"
             else:
                 search_type = "author"
             # Url to access the searching.
             web_url = f"https://annas-archive.org/search?index=&page=1&desc=1&termtype_1={search_type}&termval_1={term}&content=book_nonfiction&content=book_fiction&content=book_unknown&sort="
-            # Url to access the base website
+            # Url to be used for page navigation.
             page_url = f"https://annas-archive.org/search?index=&desc=1&termtype_1={search_type}&termval_1={term}&content=book_nonfiction&content=book_fiction&content=book_unknown&sort=&page="
+            # Url to access the base website
             base_url = "https://annas-archive.org"
             try:
                 while True:
                     # Sending request to the webpage.
                     driver.get(web_url)
                     time.sleep(2)
+                    # Scrolling to bottom to get all the elements.
                     elem = driver.find_element(By.TAG_NAME, "html")
                     elem.send_keys(Keys.END)
                     time.sleep(2)
                     # Getting html page with BeautifulSoup module
                     soup = BeautifulSoup(driver.page_source, "html.parser")
+                    # Checking weather the element exists.
                     if Booksources().exists(element = ".isolate.inline-flex.-space-x-px.rounded-md.shadow-sm.text-xs"):
                         div_tag = soup.find("nav", class_="isolate inline-flex -space-x-px rounded-md shadow-sm text-xs")
                         pages = int(div_tag.find_all("a", class_="custom-a relative inline-flex items-center px-2 py-2 font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0")[-1].getText())
@@ -270,6 +273,7 @@ class Booksources:
                         pages = 1
                     # Finding all the mentioned elements from webpage.
                     h3_tag = soup.find_all("h3", class_="max-lg:line-clamp-[2] lg:truncate leading-[1.2] lg:leading-[1.35] text-md lg:text-xl font-bold")
+                    # Creating index, name and link list and appending the respective items.
                     index_list = []
                     name_list = []
                     for i, name in enumerate(h3_tag, start=1):
@@ -280,11 +284,13 @@ class Booksources:
                     for a_tag in div_tag:
                         for links in a_tag.find_all("a"):
                             link_list.append(base_url + links["href"])
+                    # Iterating using zip as it lets two list loop together
                     for index_name, name in zip(index_list, name_list):
+                        # Printing name with index for user to choose.
                         print(f"{index_name}. {name}")
-                    book_tuple = Booksources().user_choice(name_list, link_list, index_list, page_url)
-                    url = book_tuple[0]
-                    name = book_tuple[1]
+                    data = Booksources().user_choice(name_list, link_list, index_list, page_url)
+                    url = data[0]
+                    name = data[1]
                     index = Booksources().page_navigation(name, pages, index)
                     web_url = url + str(index)
                     if name != "Next Page" and name != "Previous Page":
@@ -292,11 +298,11 @@ class Booksources:
                 # Sending get request to the website.
                 driver.get(url)
                 # Parsering the response with "BeauitifulSoup".
-                book_soup = BeautifulSoup(driver.page_source, "html.parser")
+                soup = BeautifulSoup(driver.page_source, "html.parser")
                 # Finding all the mentioned elements in the webpage.
-                html_tag = book_soup.find_all("ul", class_="list-inside mb-4 ml-1")[1]
-                book_link = html_tag.find_all("a")[-1]
-                link = base_url + book_link["href"]
+                html_tag = soup.find_all("ul", class_="list-inside mb-4 ml-1")[1]
+                link = html_tag.find_all("a")[-1]
+                link = base_url + link["href"]
                 print(f"{name}\n{link}")
                 Booksources().retry(source, search_term, choice)
             except SessionNotCreatedException:
@@ -307,6 +313,8 @@ class Booksources:
                 pass
             except FileNotFoundError:
                 pass
+            except KeyboardInterrupt:
+                print("Cancelled by user.")
 ############################################################################
     class Torrent:
         def torrent_search(self, search_term):
@@ -370,4 +378,6 @@ class Booksources:
                 print("Network Error!")
             except TypeError:
                 pass
+            except KeyboardInterrupt:
+                print("Cancelled by user.")
 ############################################################################

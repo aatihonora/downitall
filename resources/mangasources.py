@@ -4,7 +4,11 @@
 import os
 import re
 import shutil
+import subprocess
+from time import sleep
 
+import pandas as pd
+import questionary
 import requests
 from bs4 import BeautifulSoup
 from cbz_generator import create_cbz_archive as cbz_generator
@@ -42,53 +46,86 @@ bookcli = os.getcwd()
 
 class Mangasources:
     '''Manga functions'''
-
+############################################################################
+    # Defining the function for moving through pages, it takes name, pages(total pages) and, index(starting of pages).
+    def page_navigation(self, name, pages, index):
+        # If statement to confirm what user choose, next or previous page.
+            if name == "Next Page":
+                # If statement to check whether it isn't the last page, if not add one else reset the count.
+                if index < pages:
+                    index += 1
+                else:
+                    index = 1
+            else: 
+                # If statement to check whether it isn't the first page, if not add one else don't change the count.
+                if index != 1:
+                    index -= 1
+                else:
+                    index = 1
+            return index
+############################################################################
+    # Defining the function to check if an element exists in the current page.
     def exists(self, element):
+        # Using try except to use the error catching as false argument.
         try:
             driver.find_element(By.CSS_SELECTOR,element)
         except NoSuchElementException:
             return False
         return True
-
-    def core(self, html_tag, baseurl, source):
-        # Creating three lists "link_list", "name_list" and "index_list".
-        link_list = []
-        name_list = []
-        index_list = []
-        # Enumerating links from html_tag taken from sources with i for index.
-        for i, links in enumerate(html_tag, start=1):
-            # Adding exceptional cases for each sources.
-            if source == "mangasee":
-                link_list.append(re.sub('-page-1','',(baseurl + links["href"])))
-                for span_tag in links.find_all("span", class_="ng-binding", attrs={"style": "font-weight:600"}):
-                    for name in span_tag:
-                        name_list.append(re.sub('\s+',' ',name.text.strip()))
-                index_list.append(i)
-            elif source == "comicextra":
-                for i, a_html_link in enumerate(html_tag, start=1):
-                    for links in a_html_link.find_all("a"):
-                        link_list.append(baseurl + links["href"])
-                        name_list.append(links.text.strip())
-                        index_list.append(i)
-            elif source == "comicextra_chapter":
-                for tr_html_chapter in html_tag:
-                            # Finding the chapter_data from "a" tag through tr_html_chapter.
-                    for i, links in enumerate(tr_html_chapter.find_all("a"), start=1):
-                        link_list.append(links["href"] + "/full") 
-                        name_list.append(re.sub('"','',links.text))
-                        index_list.append(i)
-            else:
-                link_list.append(baseurl + links["href"])
-                name_list.append(re.sub("\s+", " ", links.text.strip()))
-                index_list.append(i)
-        if source == "bato" or "mangasee":
-            link_list.reverse()
-            name_list.reverse()
+############################################################################
+    # Defining the function for tables through pandas, table is the element.
+    def visual_tables(self, table):
+        # Finding the table body from table element.
+        tbody = table.find("tbody")
+        # Creating data list and row list. Looping to find all table rows and cells while appending cell text to row list and appending row list to data list.
+        data = []
+        for row in tbody.find_all('tr'):
+            row_data = []
+            for cell in row.find_all('td'):
+                cell_info = cell.text.strip()
+                row_data.append(cell_info)
+            data.append(row_data)
+        # Creating a pandas dataframe
+        df = pd.DataFrame(data)
+        return df
+############################################################################
+    # Defining the function for player to choose the index.
+    def user_choice(self, name_list, link_list, index_list, page_url):
+        # Appendind data for next and previous page.
+        name_list.append("Next Page")
+        link_list.append(page_url)
+        index_list.append(0)
+        name_list.append("Previous Page")
+        link_list.append(page_url)
+        index = len(index_list)
+        index_list.append(index)
         # Creating two dictionary that take key as index and value as items from "link_list" and "name_list" respectively.
         url_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
         name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
+        try:
+            # If statement in case no manga/chapter was found.
+            if len(link_list) == 2 :
+                print(f'Sorry could not found anything :(!')
+            else:
+                # Matching the user selection with "urls_dict" dictionary to get its value.
+                selection = int(input(f"\n0 for Next Page | {index} for Previous Page\n\nSelect the index number: "))
+                if selection in url_dict:
+                    # Getting the name and link by matching the index number from dictionaries.
+                    link = f"{url_dict[selection]}"
+                    name = f"{name_dict[selection]}"
+                    print("Fetching, please wait...")
+                    subprocess.call(["clear"])
+                    return link, name
+                else:
+                    raise ValueError
+        except ValueError:
+            print("Invalid integer. The number must be in the range.")
+############################################################################
+    def no_page(self, name_list, link_list, index_list):
+        name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
+        url_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
         # Making UI to get user input from name_list.
-        for key, value in name_dict.items():
+        for key, value in enumerate(name_list, start=1):
             print(f'{key}. {value}')
         try:
             # If statement in case no manga/chapter was found.
@@ -96,19 +133,19 @@ class Mangasources:
                 print(f'Sorry could not found anything :(!')
             else:
                 # Matching the user selection with "urls_dict" dictionary to get its value.
-                while True:
-                    selection = int(input("\nSelect the index number: "))
-                    if selection in url_dict:
-                        # Getting the name and link by matching the index number from dictionaries.
-                        link = f"{url_dict[selection]}"
-                        name = f"{name_dict[selection]}"
-                        print("Fetching, please wait...")
-                        return link, name
-                    else:
-                        raise ValueError
+                selection = int(input("\nSelect the index number: "))
+                if selection in url_dict:
+                    # Getting the name and link by matching the index number from dictionaries.
+                    link = f"{url_dict[selection]}"
+                    name = f"{name_dict[selection]}"
+                    print("Fetching, please wait...")
+                    subprocess.call(["clear"])
+                    return link, name
+                else:
+                    raise ValueError
         except ValueError:
             print("Invalid integer. The number must be in the range.")
-
+############################################################################
     def download_compress(self, manga_name, chapter_name, img_links_list):
         # Using regex to get the standard naming protocols for easy folder making.
         manga = re.sub('[^a-z,0-9]', '_', manga_name, flags=re.IGNORECASE)
@@ -161,189 +198,294 @@ class Mangasources:
             print("Download Complete")
         except OSError as e:
             print(e)
-
-    def bato(self,search_term):
-        # Url to access the searching.
-        url = "https://bato.to/search?word=" + search_term
-        # Url to access the base website.
-        baseurl = "https://bato.to"
-        try:
-            # Sending request to the webpage.
-            response = requests.get(url, timeout=2)
-            # Getting html page with BeautifulSoup module.
-            soup = BeautifulSoup(response.content, "html.parser")
-            # Finding all the mentioned elements from webpage.
-            html_tag = soup.find_all("a", class_="item-title", href=True)
-            # Using core method as function to get rid of repeating the same lines.
-            source = ""
-            manga_tuple = self.core(html_tag, baseurl, source)
-            manga_link = manga_tuple[0]
-            manga_name = manga_tuple[1]
-            # Starting the requests session.
-            session = requests.Session()
-            # Sending get request to the website.
-            manga_response = session.get(manga_link, timeout=2)
-            # Parsering the response with "BeauitifulSoup".
-            manga_soup = BeautifulSoup(manga_response.content, "html.parser")
-            # Finding all the mentioned elements in the webpage.
-            html_tag = manga_soup.find_all(
-                    "a", class_="visited chapt", href=True
-            )
-            # Using core method as function to get rid of repeating the same lines.
+############################################################################
+    # Defining the function for retrying the user_choice function.
+    def retry(self, source, search_term):
+        # Using match case argument to see which class called the function.
+        answer = questionary.select("Do you want to download another file? ", choices=["Yes", "No"]).ask()
+        if answer == "Yes":
+            if source == "bato":
+                Mangasources().Bato().bato(search_term)
+            elif source == "mangasee":
+                Mangasources().Mangasee().mangasee(search_term)
+            else:
+                Mangasources().Comicextra().comicextra(search_term)
+############################################################################
+    class Bato:
+        def bato(self,search_term):
+            # Declaring function level variables.
             source = "bato"
-            chapter_tuple = self.core(html_tag, baseurl, source)
-            chapter_link = chapter_tuple[0]
-            chapter_name = chapter_tuple[1] 
-            # Sending request with selenium webdriver.
-            driver.get(chapter_link)
-            # Making driver wait 10 second before it sends error for not finding the page.
-            driver.implicitly_wait(10)
-            # Parsering the response with "BeauitifulSoup".
-            chapter_soup = BeautifulSoup(
-                driver.page_source, "html.parser"
-            )
-            # Finding all the mentioned elements from webpage.
-            imgs_html_chapter = chapter_soup.find_all(
-                "img", class_="page-img"
-            )
-            # Closing the selenium webdriver
-            driver.quit()
-            # Creating the list to store image url.
-            img_links_list = []
-            # Finding all the mentioned elements from img_html_chapter.
-            for imgs in imgs_html_chapter:
-                img_links_list.append(imgs["src"])
-            # Calling download_compress method as function.
-            self.download_compress(manga_name, chapter_name, img_links_list)
-        except SessionNotCreatedException:
-            print("If you are not using android then install from win_linux_requirement.txt file")
-        except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-            print("Network Error!")
-        except TypeError:
-            pass
-
-    def mangasee(self, search_term):
-        # Url to access the searching.
-        url = "https://mangasee123.com/search/?sort=s&desc=false&name=" + search_term   
-        # Url to access the base website.
-        baseurl = "https://mangasee123.com"
-        try:
-            # Sending request with selenium webdriver.
-            driver.get(url)
-            # Making driver wait 10 second before it sends error for not finding the page.
-            driver.implicitly_wait(10)
-            # Getting html page with BeautifulSoup module.
-            soup = BeautifulSoup(driver.page_source, "html.parser")
-            # Accessing mentioned elements for the webpage.
-            html_tag = soup.find_all("a", class_="SeriesName ng-binding", href=True)
-            # Using core method as function to get rid of repeating the same lines.
-            source = ""
-            manga_tuple = self.core(html_tag, baseurl, source)
-            manga_link = manga_tuple[0]
-            manga_name = manga_tuple[1]
-            # Sending request with selenium webdriver.
-            driver.get(manga_link)
-            # Making driver wait 10 second before it sends error for not finding the page. 
-            driver.implicitly_wait(10)
-            # Using exist method as function to confirm if the clickable element exists, if so then click it.
-            if self.exists(element = ".list-group-item.ShowAllChapters.ng-scope") == True:
-                WebDriverWait(driver,1).until(EC.element_to_be_clickable((By.CSS_SELECTOR,".list-group-item.ShowAllChapters.ng-scope"))).click()
-            # Parsering the response with "BeauitifulSoup".
-            manga_soup = BeautifulSoup(driver.page_source, "html.parser")
-            # Finding all the mentioned elements in the webpage.
-            html_tag = manga_soup.find_all(
-                "a", class_="list-group-item ChapterLink ng-scope", href=True
+            index = 1
+            # Making search term better for url through regex.
+            term = re.sub("\W", "+", search_term)
+            # Url to access webpage.
+            web_url = f"https://bato.to/search?word={term}"
+            # Url to be used for page navigation.
+            page_url = f"https://bato.to/search?word={term}&page="
+            # Url to access the base website
+            base_url = "https://bato.to"
+            try:
+                while True:
+                    # Sending request to the webpage.
+                    driver.get(web_url)
+                    # Getting html page with BeautifulSoup module
+                    soup = BeautifulSoup(driver.page_source, "html.parser")
+                    # Checking weather the element exists.
+                    if Mangasources().exists(element = ".pagination.pagination-sm.mb-0"):
+                        html_tag = soup.find("ul", class_="pagination pagination-sm mb-0")
+                        # Finding the last td tag and getting its text which is the number of last page and converting it into integer.
+                        pages = int(re.sub("\W+", "", html_tag.find_all("li")[-2].getText()))
+                    else:
+                        pass
+                    # Finding all the mentioned elements from webpage.
+                    html_tag = soup.find_all("a", class_="item-title", href=True)
+                    index_list = []
+                    name_list = []
+                    link_list = []
+                    # Finding the links and making link list.
+                    for i, links in enumerate(html_tag, start=1):
+                        index_list.append(i)
+                        name_list.append(links.text.strip())
+                        link_list.append(base_url + links["href"])
+                    for i, name in zip(index_list, name_list):
+                        print(f"{i}. {name}")
+                    # Calling the user choice function.
+                    data = Mangasources().user_choice(name_list, link_list, index_list, page_url)
+                    url = data[0]
+                    name = data[1]
+                    index = Mangasources().page_navigation(name, pages, index)
+                    web_url = url + str(index)
+                    if name != "Next Page" and name != "Previous Page":
+                        break
+                # Sending request to the webpage.
+                driver.get(url)
+                # Parsering the response with "BeauitifulSoup".
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                # Finding all the mentioned elements in the webpage.
+                html_tag = soup.find_all(
+                        "a", class_="visited chapt", href=True
                 )
-            # Using core method as function to get rid of repeating the same lines.
+                index_list = []
+                name_list = []
+                link_list = []
+                # Finding the links and making link list.
+                for i, links in enumerate(html_tag, start=1):
+                    index_list.append(i)
+                    name_list.append(links.text.strip())
+                    link_list.append(base_url + links["href"])
+                name_list.reverse()
+                link_list.reverse()
+                # Using core method as function to get rid of repeating the same lines.
+                data = Mangasources().no_page(name_list, link_list, index_list)
+                url = data[0]
+                chapter_name = data[1] 
+                # Sending request with selenium webdriver.
+                driver.get(url)
+                # Parsering the response with "BeauitifulSoup".
+                soup = BeautifulSoup(
+                    driver.page_source, "html.parser"
+                )
+                # Finding all the mentioned elements from webpage.
+                html_tag = soup.find_all(
+                    "img", class_="page-img"
+                )
+                # Creating the list to store image url.
+                img_links_list = []
+                # Finding all the mentioned elements from img_html_chapter.
+                for imgs in html_tag:
+                    img_links_list.append(imgs["src"])
+                # Calling download_compress method as function.
+                Mangasources().download_compress(name, chapter_name, img_links_list)
+                Mangasources().retry(source, search_term)
+            except SessionNotCreatedException:
+                print("If you are not using android then install from win_linux_requirement.txt file")
+            except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+                print("Network Error!")
+            except TypeError:
+                pass
+            except KeyboardInterrupt:
+                print("Cancelled by user.")
+############################################################################
+    class Mangasee:
+        def mangasee(self, search_term):
+            # Declaring function level variables.
             source = "mangasee"
-            chapter_tuple = self.core(html_tag, baseurl, source)
-            chapter_link = chapter_tuple[0]
-            chapter_name = chapter_tuple[1]
-            # Sending request with selenium webdriver.
-            driver.get(chapter_link)
-            # Making driver wait 10 second before it sends error for not finding the page.
-            driver.implicitly_wait(10)
-            # Parsering the response with "BeauitifulSoup".
-            chapter_soup = BeautifulSoup(
-            driver.page_source, "html.parser")
-            # Finding all the mentioned elements from webpage.
-            imgs_html_chapter = chapter_soup.find_all(
-                "img", class_="img-fluid HasGap"
-            )
-            # Closing the selenium webdriver
-            driver.quit()
-            # Creating the list to store image url.
-            img_links_list = []
-            # Finding all the mentioned elements from img_html_chapter.
-            for imgs in imgs_html_chapter:
-                img_links_list.append(imgs["src"])
-            # Calling download_compress method as function.
-            self.download_compress(manga_name, chapter_name, img_links_list)
-        except SessionNotCreatedException:
-            print("If you are not using android then install from win_linux_requirement.txt file")
-        except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-            print("Network Error!")
-        except TypeError:
-            pass
-    
-    def comicextra(self, search_term):
-        # Basic url to access the searching.
-        url = "https://comixextra.com/search?keyword=" + search_term  
-        baseurl = ""
-        try:
-            # Sending request with selenium webdriver.
-            driver.get(url)
-            # Making driver wait 10 second before it sends error for not finding the page.
-            driver.implicitly_wait(10)
-            # Getting html page with BeautifulSoup module.
-            soup = BeautifulSoup(driver.page_source, "html.parser")
-            # Accessing mentioned elements in the webpage.
-            html_tag = soup.find_all("h3")
-            # Using core method as function to get rid of repeating the same lines.
+            # Making search term better for url through regex.
+            term = re.sub("\W", "+", search_term)
+            # Url to access webpage. 
+            web_url = f"https://mangasee123.com/search/?sort=v&desc=true&name={term}"
+            # Url to access the base website
+            base_url = "https://mangasee123.com"
+            try:
+                # Sending request to the webpage.
+                driver.get(web_url)
+                # Getting html page with BeautifulSoup module
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                while True:
+                    # Finding all the mentioned elements from webpage.
+                    html_tag = soup.find_all("a", class_="SeriesName ng-binding", href=True)
+                    index_list = []
+                    name_list = []
+                    link_list = []
+                    # Finding the links and making link list.
+                    for i, links in enumerate(html_tag, start=1):
+                        index_list.append(i)
+                        name_list.append(links.text.strip())
+                        link_list.append(base_url + links["href"])
+                    else:
+                        pass
+                    # Calling the user choice function.
+                    data = Mangasources().no_page(name_list, link_list, index_list)
+                    url = data[0]
+                    name = data[1]
+                    if name != "Next Page":
+                        break
+                # Sending request to the webpage.
+                driver.get(url)
+                if Mangasources().exists(element = ".list-group-item.ShowAllChapters.ng-scope") == True:
+                    WebDriverWait(driver,1).until(EC.element_to_be_clickable((By.CSS_SELECTOR,".list-group-item.ShowAllChapters.ng-scope"))).click()
+                # Parsering the response with "BeauitifulSoup".
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                # Finding all the mentioned elements in the webpage.
+                html_tag = soup.find_all(
+                    "a", class_="list-group-item ChapterLink ng-scope", href=True
+                    )
+                index_list = []
+                name_list = []
+                link_list = []
+                # Finding the links and making link list.
+                for i, links in enumerate(html_tag, start=1):
+                    index_list.append(i)
+                    name_list.append(re.sub("\s+", " ", links.text.strip()))
+                    link_list.append(re.sub('-page-1','',(base_url + links["href"])))
+                name_list.reverse()
+                link_list.reverse()
+                # Using core method as function to get rid of repeating the same lines.
+                data = Mangasources().no_page(name_list, link_list, index_list)
+                url = data[0]
+                chapter_name = data[1] 
+                # Sending request with selenium webdriver.
+                driver.get(url)
+                # Parsering the response with "BeauitifulSoup".
+                soup = BeautifulSoup(
+                    driver.page_source, "html.parser"
+                )
+                # Finding all the mentioned elements from webpage.
+                html_tag = soup.find_all(
+                    "img", class_="img-fluid HasGap"
+                )
+                # Creating the list to store image url.
+                img_links_list = []
+                # Finding all the mentioned elements from img_html_chapter.
+                for imgs in html_tag:
+                    img_links_list.append(imgs["src"])
+
+                # Calling download_compress method as function.
+                Mangasources().download_compress(name, chapter_name, img_links_list)
+                Mangasources().retry(source, search_term)
+            except SessionNotCreatedException:
+                print("If you are not using android then install from win_linux_requirement.txt file")
+            except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+                print("Network Error!")
+            except TypeError:
+                pass
+            except KeyboardInterrupt:
+                print("Cancelled by user.")
+############################################################################
+    class Comicextra:
+        def comicextra(self, search_term):
+            # Declaring function level variables.
             source = "comicextra"
-            manga_tuple = self.core(html_tag, baseurl, source)
-            manga_link = manga_tuple[0]
-            manga_name = manga_tuple[1]
-            # Sending request with selenium webdriver.
-            driver.get(manga_link)
-            # Making driver wait 10 second before it sends error for not finding the page.
-            driver.implicitly_wait(10)
-            # Parsering the response with "BeauitifulSoup".
-            manga_soup = BeautifulSoup(driver.page_source, "html.parser")
-            # Getting mentioned element from html page.
-            html_tag = manga_soup.find_all(
-                    "table", class_="table"
-            )
-            # Using core method as function to get rid of repeating the same lines.
-            source = "comicextra_chapter"
-            chapter_tuple = self.core(html_tag, baseurl, source)
-            chapter_link = chapter_tuple[0]
-            chapter_name = chapter_tuple[1]
-            # Sending request with selenium webdriver.
-            driver.get(chapter_link)
-            # Making driver wait 10 second before it sends error for not finding the page.
-            driver.implicitly_wait(10)
-            # Parsering the response with "BeauitifulSoup".
-            chapter_soup = BeautifulSoup(
-                driver.page_source, "html.parser"
-            )
-            # Finding all the mentioned element in the html page.
-            div_html_chapter = chapter_soup.find_all(
-                "div", class_="chapter-container"
-            )
-            # Closing the selenium webdriver
-            driver.quit()
-            # Creating the list to store image url.
-            img_links_list = []
-            # Finding all the mentioned elements from div_html_chapter.
-            for imgs_html_chapter in div_html_chapter:
-                for imgs in imgs_html_chapter.find_all("img"):
-                    img_links_list.append(imgs["src"].strip())
-            # Calling download_compress method as function.
-            self.download_compress(manga_name, chapter_name, img_links_list)
-        except SessionNotCreatedException:
-            print("If you are not using android then install from win_linux_requirement.txt file")
-        except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-            print("Network Error!")
-        except TypeError:
-            pass
+            index = 1
+            # Making search term better for url through regex.
+            term = re.sub("\W", "+", search_term)
+            # Url to access webpage.
+            web_url = f"https://comixextra.com/search?keyword={term}"
+            # Url to be used for page navigation.
+            page_url = f"https://comixextra.com/search?keyword={term}&page="
+            try:
+                while True:
+                    # Sending request to the webpage.
+                    driver.get(web_url)
+                    # Getting html page with BeautifulSoup module
+                    soup = BeautifulSoup(driver.page_source, "html.parser")
+                    # Checking weather the element exists.
+                    html_tag = soup.find("a", href=lambda t: t and "page=" in t)
+                    if not html_tag:
+                        pages = 1
+                    else:
+                        html_tag = soup.find_all("div", class_="general-nav")[1]
+                        # Finding the last td tag and getting its text which is the number of last page and converting it into integer.
+                        pages = int(html_tag.find_all("a")[-2].getText())
+                        print(pages)
+                    # Finding all the mentioned elements from webpage.
+                    index_list = []
+                    name_list = []
+                    link_list = []
+                    # Finding the links and making link list.
+                    html_tag = soup.find_all("h3")
+                    for i, tag in enumerate(html_tag, start=1):
+                        for links in tag.find_all("a"):
+                            name_list.append(links.text.strip())
+                            link_list.append(links["href"])
+                            index_list.append(i)
+                    for i, name in zip(index_list, name_list):
+                        print(f"{i}. {name}")
+                    # Calling the user choice function.
+                    data = Mangasources().user_choice(name_list, link_list, index_list, page_url)
+                    url = data[0]
+                    name = data[1]
+                    index = Mangasources().page_navigation(name, pages, index)
+                    web_url = url + str(index)
+                    if name != "Next Page" and name != "Previous Page":
+                        break
+                # Sending request to the webpage.
+                driver.get(url)
+                # Parsering the response with "BeauitifulSoup".
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                # Finding all the mentioned elements in the webpage.
+                table = soup.find(
+                        "table", class_="table"
+                )
+                df = Mangasources().visual_tables(table)
+                df_table = df.iloc[:, [0, 1]]
+                df_table.index += 1
+                index_list = df_table.index.tolist()
+                name_list = df[df.columns[0]].values.tolist()
+                html_tag = table.find_all("a")
+                link_list = []
+                # Finding the links and making link list.
+                for i, links in enumerate(html_tag, start=1):
+                    link_list.append(links["href"])
+                # Using core method as function to get rid of repeating the same lines.
+                data = Mangasources().no_page(name_list, link_list, index_list)
+                url = data[0]
+                chapter_name = data[1] 
+                # Sending request with selenium webdriver.
+                driver.get(url+"/full")
+                # Parsering the response with "BeauitifulSoup".
+                soup = BeautifulSoup(
+                    driver.page_source, "html.parser"
+                )
+                # Finding all the mentioned elements from webpage.
+                html_tag = soup.find_all(
+                    "div", class_="chapter-container"
+                )
+                # Creating the list to store image url.
+                img_links_list = []
+                # Finding all the mentioned elements from img_html_chapter.
+                for tag in html_tag:
+                    for imgs in tag.find_all("img"):
+                        img_links_list.append(imgs["src"].strip())
+                # Calling download_compress method as function.
+                Mangasources().download_compress(name, chapter_name, img_links_list)
+                Mangasources().retry(source, search_term)
+            except SessionNotCreatedException:
+                print("If you are not using android then install from win_linux_requirement.txt file")
+            except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+                print("Network Error!")
+            except TypeError:
+                pass
+            except KeyboardInterrupt:
+                print("Cancelled by user.")
+############################################################################

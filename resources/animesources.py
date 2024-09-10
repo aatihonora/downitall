@@ -7,6 +7,7 @@ import subprocess
 
 import gdown
 import pandas as pd
+import questionary
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -100,7 +101,7 @@ class Animesources:
         name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
         try:
             # If statement in case no manga/chapter was found.
-            if not link_list:
+            if len(link_list) == 2:
                 print(f'Sorry could not found anything :(!')
             else:
                 # Matching the user selection with "urls_dict" dictionary to get its value.
@@ -158,18 +159,14 @@ class Animesources:
     # Defining the function for retrying the user_choice function.
     def retry(self, source, search_term, choice):
         # Using match case argument to see which class called the function.
-        match input("\n1. Continue \n2. Exit\n\nEnter the index: "):
-            case "1":
-                if source == "kayoanime":
-                    Animesources().Kayoanime().kayoanime_search(search_term, choice)
-                if source == "tokyoinsider":
-                    Animesources().Tokyoinsider().tokyoinsider_search(search_term, choice)
-                else:
-                    Animesources().Nyaa().nyaa_search(search_term)
-            case "2":
-                pass
-            case _:
-                pass
+        answer = questionary.select("Do you want to download another file? ", choices=["Yes", "No"]).ask()
+        if answer == "Yes":
+            if source == "kayoanime":
+                Animesources().Kayoanime().kayoanime_search(search_term, choice)
+            if source == "tokyoinsider":
+                Animesources().Tokyoinsider().tokyoinsider_search(search_term, choice)
+            else:
+                Animesources().Nyaa().nyaa_search(search_term)
 ############################################################################
     class Kayoanime:
         def kayoanime_search(self,search_term, choice):
@@ -219,7 +216,9 @@ class Animesources:
                 pass
             except (RuntimeError, gdown.exceptions.FileURLRetrievalError, gdown.exceptions.FolderContentsMaximumLimitError, PermissionError):
                 print("Google file is either private or unavilable")
-
+            except KeyboardInterrupt:
+                print("Cancelled by user.")
+############################################################################
     class Tokyoinsider:
         def tokyoinsider_search(self, search_term, choice):
             # Declaring function level variables.
@@ -327,7 +326,9 @@ class Animesources:
                 print("Network Error!")
             except TypeError:
                 pass
-
+            except KeyboardInterrupt:
+                print("Cancelled by user.")
+############################################################################
     class Nyaa:
         def nyaa_search(self, search_term):
             source = "nyaa"
@@ -388,3 +389,6 @@ class Animesources:
                 print("Network Error!")
             except TypeError:
                 pass
+            except KeyboardInterrupt:
+                print("Cancelled by user.")
+############################################################################
