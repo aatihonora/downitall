@@ -5,7 +5,6 @@ import os
 import re
 import shutil
 import subprocess
-from time import sleep
 
 import pandas as pd
 import questionary
@@ -19,6 +18,7 @@ from selenium.common.exceptions import (NoSuchElementException,
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from term_image.image import from_url
 from tqdm.auto import tqdm
 
 # Global variables.
@@ -90,61 +90,45 @@ class Mangasources:
         return df
 ############################################################################
     # Defining the function for player to choose the index.
-    def user_choice(self, name_list, link_list, index_list, page_url):
+    def user_choice(self, name_list, link_list, index_list):
         # Appendind data for next and previous page.
-        name_list.append("Next Page")
-        link_list.append(page_url)
-        index_list.append(0)
-        name_list.append("Previous Page")
-        link_list.append(page_url)
-        index = len(index_list)
-        index_list.append(index)
         # Creating two dictionary that take key as index and value as items from "link_list" and "name_list" respectively.
         url_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
         name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
+        for key, value in name_dict.items():
+            print(f'{key}. {value}')
         try:
             # If statement in case no manga/chapter was found.
             if len(link_list) == 2 :
                 print(f'Sorry could not found anything :(!')
             else:
                 # Matching the user selection with "urls_dict" dictionary to get its value.
-                selection = int(input(f"\n0 for Next Page | {index} for Previous Page\n\nSelect the index number: "))
+                selection = int(input("\n\nSelect the index number: "))
                 if selection in url_dict:
                     # Getting the name and link by matching the index number from dictionaries.
                     link = f"{url_dict[selection]}"
                     name = f"{name_dict[selection]}"
                     print("Fetching, please wait...")
                     subprocess.call(["clear"])
-                    return link, name
+                    return [link, name, selection]
                 else:
                     raise ValueError
         except ValueError:
             print("Invalid integer. The number must be in the range.")
 ############################################################################
-    def no_page(self, name_list, link_list, index_list):
-        name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
-        url_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
-        # Making UI to get user input from name_list.
-        for key, value in enumerate(name_list, start=1):
-            print(f'{key}. {value}')
-        try:
-            # If statement in case no manga/chapter was found.
-            if not link_list:
-                print(f'Sorry could not found anything :(!')
-            else:
-                # Matching the user selection with "urls_dict" dictionary to get its value.
-                selection = int(input("\nSelect the index number: "))
-                if selection in url_dict:
-                    # Getting the name and link by matching the index number from dictionaries.
-                    link = f"{url_dict[selection]}"
-                    name = f"{name_dict[selection]}"
-                    print("Fetching, please wait...")
-                    subprocess.call(["clear"])
-                    return link, name
-                else:
-                    raise ValueError
-        except ValueError:
-            print("Invalid integer. The number must be in the range.")
+    def confirmation(self, selection, index_list, img_list):
+        img_dict = {index_list[i]: img_list[j] for i, j in enumerate(range(len(img_list)), start=1)}
+        img = f"{img_dict[selection]}"
+        image = from_url(img)
+        subprocess.call(["clear"])
+        print(f"\n{image}\n\n")
+        answer = questionary.select("Is this the manga?", choices=["Yes", "No"]).ask()
+        if answer == "Yes":
+            subprocess.call(["clear"])
+            return True
+        else: 
+            subprocess.call(["clear"])
+            return False
 ############################################################################
     def download_compress(self, manga_name, chapter_name, img_links_list):
         # Using regex to get the standard naming protocols for easy folder making.
@@ -242,17 +226,35 @@ class Mangasources:
                     index_list = []
                     name_list = []
                     link_list = []
+                    img_list = []
                     # Finding the links and making link list.
+                    name_list.append("Next Page")
+                    link_list.append(page_url)
+                    index_list.append(0)
                     for i, links in enumerate(html_tag, start=1):
                         index_list.append(i)
                         name_list.append(links.text.strip())
                         link_list.append(base_url + links["href"])
-                    for i, name in zip(index_list, name_list):
-                        print(f"{i}. {name}")
-                    # Calling the user choice function.
-                    data = Mangasources().user_choice(name_list, link_list, index_list, page_url)
-                    url = data[0]
-                    name = data[1]
+                    name_list.append("Previous Page")
+                    link_list.append(page_url)
+                    index_list.append(i+1)
+                    html_tag = soup.find_all("img", class_="rounded")
+                    for img in html_tag:
+                        img_list.append(img["src"])
+                    while True:
+                        # Calling the user choice function.
+                        data = Mangasources().user_choice(name_list, link_list, index_list)
+                        url = data[0]
+                        name = data[1]
+                        selection = data[2]
+                        if name != "Next Page" and name != "Previous Page":
+                            answer = Mangasources().confirmation(selection, index_list, img_list)
+                            if answer == True:
+                                break
+                            else:
+                                pass
+                        else:
+                            break
                     index = Mangasources().page_navigation(name, pages, index)
                     web_url = url + str(index)
                     if name != "Next Page" and name != "Previous Page":
@@ -276,7 +278,7 @@ class Mangasources:
                 name_list.reverse()
                 link_list.reverse()
                 # Using core method as function to get rid of repeating the same lines.
-                data = Mangasources().no_page(name_list, link_list, index_list)
+                data = Mangasources().user_choice(name_list, link_list, index_list)
                 url = data[0]
                 chapter_name = data[1] 
                 # Sending request with selenium webdriver.
@@ -319,27 +321,40 @@ class Mangasources:
             try:
                 # Sending request to the webpage.
                 driver.get(web_url)
-                # Getting html page with BeautifulSoup module
-                soup = BeautifulSoup(driver.page_source, "html.parser")
                 while True:
+                    # Getting html page with BeautifulSoup module
+                    soup = BeautifulSoup(driver.page_source, "html.parser")
                     # Finding all the mentioned elements from webpage.
                     html_tag = soup.find_all("a", class_="SeriesName ng-binding", href=True)
                     index_list = []
                     name_list = []
                     link_list = []
+                    img_list = []
                     # Finding the links and making link list.
+                    name_list.append("Next Page")
+                    link_list.append("")
+                    index_list.append(0)
                     for i, links in enumerate(html_tag, start=1):
                         index_list.append(i)
                         name_list.append(links.text.strip())
                         link_list.append(base_url + links["href"])
-                    else:
-                        pass
+                    html_tag = soup.find_all("img", class_="img-fluid")
+                    for img in html_tag:
+                        img_list.append(img["src"])
                     # Calling the user choice function.
-                    data = Mangasources().no_page(name_list, link_list, index_list)
+                    data = Mangasources().user_choice(name_list, link_list, index_list)
                     url = data[0]
                     name = data[1]
+                    selection = data[2]
                     if name != "Next Page":
-                        break
+                        answer = Mangasources().confirmation(selection, index_list, img_list)
+                        if answer == True:
+                            break
+                        else:
+                            pass
+                    else:
+                        if Mangasources().exists(element = ".btn.btn-outline-primary.form-control.top-15.bottom-5.ng-scope") == True:
+                            WebDriverWait(driver,1).until(EC.element_to_be_clickable((By.CSS_SELECTOR,".btn.btn-outline-primary.form-control.top-15.bottom-5.ng-scope"))).click()
                 # Sending request to the webpage.
                 driver.get(url)
                 if Mangasources().exists(element = ".list-group-item.ShowAllChapters.ng-scope") == True:
@@ -361,7 +376,7 @@ class Mangasources:
                 name_list.reverse()
                 link_list.reverse()
                 # Using core method as function to get rid of repeating the same lines.
-                data = Mangasources().no_page(name_list, link_list, index_list)
+                data = Mangasources().user_choice(name_list, link_list, index_list)
                 url = data[0]
                 chapter_name = data[1] 
                 # Sending request with selenium webdriver.
@@ -417,24 +432,42 @@ class Mangasources:
                         html_tag = soup.find_all("div", class_="general-nav")[1]
                         # Finding the last td tag and getting its text which is the number of last page and converting it into integer.
                         pages = int(html_tag.find_all("a")[-2].getText())
-                        print(pages)
                     # Finding all the mentioned elements from webpage.
                     index_list = []
                     name_list = []
                     link_list = []
+                    img_list = []
                     # Finding the links and making link list.
                     html_tag = soup.find_all("h3")
+                    name_list.append("Next Page")
+                    link_list.append(page_url)
+                    index_list.append(0)
                     for i, tag in enumerate(html_tag, start=1):
                         for links in tag.find_all("a"):
                             name_list.append(links.text.strip())
                             link_list.append(links["href"])
                             index_list.append(i)
-                    for i, name in zip(index_list, name_list):
-                        print(f"{i}. {name}")
-                    # Calling the user choice function.
-                    data = Mangasources().user_choice(name_list, link_list, index_list, page_url)
-                    url = data[0]
-                    name = data[1]
+                    name_list.append("Previous Page")
+                    link_list.append(page_url)
+                    index_list.append(i+1) 
+                    html_tag = soup.find_all("a", class_="image")
+                    for tag in html_tag:
+                        for img in tag.find_all("img", alt=True):
+                            img_list.append(img["src"])
+                    while True:        
+                        # Calling the user choice function.
+                        data = Mangasources().user_choice(name_list, link_list, index_list)
+                        url = data[0]
+                        name = data[1]
+                        selection = data[2]
+                        if name != "Next Page" and name != "Previous Page":
+                            answer = Mangasources().confirmation(selection, index_list, img_list)
+                            if answer == True:
+                                break
+                            else:
+                                pass
+                        else:
+                            break
                     index = Mangasources().page_navigation(name, pages, index)
                     web_url = url + str(index)
                     if name != "Next Page" and name != "Previous Page":
@@ -458,7 +491,7 @@ class Mangasources:
                 for i, links in enumerate(html_tag, start=1):
                     link_list.append(links["href"])
                 # Using core method as function to get rid of repeating the same lines.
-                data = Mangasources().no_page(name_list, link_list, index_list)
+                data = Mangasources().user_choice(name_list, link_list, index_list)
                 url = data[0]
                 chapter_name = data[1] 
                 # Sending request with selenium webdriver.
