@@ -490,6 +490,8 @@ class Mangasources:
                 # Finding the links and making link list.
                 for i, links in enumerate(html_tag, start=1):
                     link_list.append(links["href"])
+                name_list.reverse()
+                link_list.reverse()
                 # Using core method as function to get rid of repeating the same lines.
                 data = Mangasources().user_choice(name_list, link_list, index_list)
                 url = data[0]

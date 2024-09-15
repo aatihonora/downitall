@@ -53,25 +53,25 @@ python bookcli.py
 # Supported Websites 
 ## Books
 1. Libgen [Books]
-2. Anna's Archive [Books]
-3. Glodls [Courses] [Torrent]
+2. Anna's Archive [Books] [Selenium]
+3. 1337x [Books] [Courses] [Torrent]
 
 ## Manga
 1. Bato.to [Manga/Manhwa/Manhua/Comic]
-2. Mangasee [Manga]
+2. Mangasee [Manga] [Selenium]
 3. ComicExtra [Comic]
 
 ## Anime
 1. TokyoInsider [Anime]
-2. Nyaa.si [Torrent] [Anime]
+2. Nyaa.si [Anime] [Torrent]
 3. Kayoanime [Anime]
 
 ## TV-Series/Movies
-1. Vadapav [TV-Series/Movies/Anime]
-2. 1337x [Everything] [Torrent]
-3. LimeTorrent [Everything] [Torrent]
+1. Vadapav [TV-Series/Movies]
+2. 1337x [TV-Series/Movies] [Torrent]
+3. DocumentayTop [Documentaries] [Torrent]
 
 ## Music
 1. Lightaudio [Tracks]
 2. Bomb-music [Tracks]
-3. PagalNew [Hindi Tracks]
+3. PlayerFM [Podcasts]

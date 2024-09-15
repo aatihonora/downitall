@@ -4,6 +4,7 @@
 import os
 import re
 import subprocess
+import time
 
 import gdown
 import pandas as pd
@@ -15,6 +16,9 @@ from selenium.common.exceptions import (NoSuchElementException,
                                         SessionNotCreatedException,
                                         TimeoutException, WebDriverException)
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 # Global variables.
 # Selenium Chrome options to lessen the memory usage.
@@ -87,57 +91,25 @@ class Animesources:
         return df
 ############################################################################
     # Defining the function for player to choose the index.
-    def user_choice(self, name_list, link_list, index_list, page_url):
+    def user_choice(self, name_list, link_list, index_list):
         # Appendind data for next and previous page.
-        name_list.append("Next Page")
-        link_list.append(page_url)
-        index_list.append(0)
-        name_list.append("Previous Page")
-        link_list.append(page_url)
-        index = len(index_list)
-        index_list.append(index)
         # Creating two dictionary that take key as index and value as items from "link_list" and "name_list" respectively.
         url_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
         name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
         try:
             # If statement in case no manga/chapter was found.
-            if len(link_list) == 2:
+            if len(link_list) == 2 :
                 print(f'Sorry could not found anything :(!')
             else:
                 # Matching the user selection with "urls_dict" dictionary to get its value.
-                selection = int(input(f"\n0 for Next Page | {index} for Previous Page\n\nSelect the index number: "))
+                selection = int(input("\n\nSelect the index number: "))
                 if selection in url_dict:
                     # Getting the name and link by matching the index number from dictionaries.
                     link = f"{url_dict[selection]}"
                     name = f"{name_dict[selection]}"
                     print("Fetching, please wait...")
                     subprocess.call(["clear"])
-                    return link, name
-                else:
-                    raise ValueError
-        except ValueError:
-            print("Invalid integer. The number must be in the range.")
-############################################################################
-    def no_page(self, name_list, link_list, index_list):
-        url_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
-        name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
-        # Making UI to get user input from name_list.
-        for key, value in enumerate(name_list, start=1):
-            print(f'{key}. {value}')
-        try:
-            # If statement in case no manga/chapter was found.
-            if not link_list:
-                print(f'Sorry could not found anything :(!')
-            else:
-                # Matching the user selection with "urls_dict" dictionary to get its value.
-                selection = int(input("\nSelect the index number: "))
-                if selection in url_dict:
-                    # Getting the name and link by matching the index number from dictionaries.
-                    link = f"{url_dict[selection]}"
-                    name = f"{name_dict[selection]}"
-                    print("Fetching, please wait...")
-                    subprocess.call(["clear"])
-                    return link, name
+                    return [link, name, selection]
                 else:
                     raise ValueError
         except ValueError:
@@ -169,36 +141,40 @@ class Animesources:
                 Animesources().Nyaa().nyaa_search(search_term)
 ############################################################################
     class Kayoanime:
-        def kayoanime_search(self,search_term, choice):
+        def kayoanime_search(self,search_term):
             source = "kayoanime"
-            if choice == 1:
-                search_type = "?s="
-            elif choice == 2:
-                search_type = "series/"
-            else:
-                search_type = "ongoing-animes/"
-            # Url to access the searching.
-            if choice == 1:
-                web_url = f"https://kayoanime.com/{search_type}{search_term}"
-            else:
-                web_url = f"https://kayoanime.com/{search_type}"
-            page_url = web_url
+            web_url = f"https://kayoanime.com/{search_term}"
             try:
                 # Sending request to the webpage.
                 driver.get(web_url)
                 # Getting html page with BeautifulSoup module
-                soup = BeautifulSoup(driver.page_source, "html.parser")
-                # Finding all the mentioned elements from webpage.
-                html_tag = soup.find_all("a", class_="post-thumb", attrs={"aria-label" : True})
-                index_list = []
-                name_list = []
-                link_list = []
-                for i, links in enumerate(html_tag, start=1):
-                    index_list.append(i)
-                    name_list.append(links["aria-label"].strip())
-                    link_list.append(links["href"])
-                data = Animesources().no_page(name_list, link_list, index_list)
-                url = data[0]
+                while True:
+                    soup = BeautifulSoup(driver.page_source, "html.parser")
+                    # Finding all the mentioned elements from webpage.
+                    html_tag = soup.find_all("a", class_="post-thumb", attrs={"aria-label" : True})
+                    index_list = []
+                    name_list = []
+                    link_list = []
+                    index_list.append(0)
+                    name_list.append("Next Page")
+                    link_list.append("")
+                    for i, links in enumerate(html_tag, start=1):
+                        index_list.append(i)
+                        name_list.append(links["aria-label"].strip())
+                        link_list.append(links["href"])
+                    for i, names in zip(index_list, name_list):
+                        print(f"{i}. {names}")
+                    data = Animesources().user_choice(name_list, link_list, index_list)
+                    url = data[0]
+                    name = data[1]
+                    if name == "Next Page":
+                        if Animesources().exists(element = ".container-wrapper.show-more-button.load-more-button.infinite-scroll-archives") == True:
+                            WebDriverWait(driver,1).until(EC.element_to_be_clickable((By.CSS_SELECTOR,".container-wrapper.show-more-button.load-more-button.infinite-scroll-archives"))).click()
+                        elem = driver.find_element(By.TAG_NAME, "html")
+                        elem.send_keys(Keys.END)
+                        time.sleep(2)
+                    else:
+                        break
                 # Sending get request to the "manga_link" website.
                 driver.get(url)
                 # Parsering the response with "BeauitifulSoup".
@@ -240,7 +216,6 @@ class Animesources:
             try:
                 while True:
                     # Sending request to the webpage.
-                    print(web_url)
                     driver.get(web_url)
                     # Getting html page with BeautifulSoup module
                     soup = BeautifulSoup(driver.page_source, "html.parser")
@@ -259,24 +234,32 @@ class Animesources:
                     df_table = df.iloc[:, [1]]
                     # Making table index start from 1.
                     df_table.index += 1
-                    print(df_table)
                     # Converting index column into index list.
+                    link_list = []
                     index_list = df_table.index.tolist()
                     name_list = df[df.columns[1]].values.tolist()
-                    link_list = []
                     # Finding the links and making link list.
                     html_tag = soup.find_all("a", title=True, attrs={"style" : "display: block"})
                     for links in html_tag:
                         link_list.append(base_url + links["href"])
+                    index_list.append(0)
+                    name_list.append("Next Page")
+                    link_list.append(page_url)
+                    index_list.append(len(df_table.index.tolist())+1)
+                    name_list.append("Previous Page")
+                    link_list.append(page_url)
+                    print("0. Next Page")
+                    print(df_table)
+                    print(f"{len(df_table.index.tolist())+1}. Previous Page")
                     # Calling the user choice function.
-                    data = Animesources().user_choice(name_list, link_list, index_list, page_url)
+                    data = Animesources().user_choice(name_list, link_list, index_list)
                     url = data[0]
                     name = data[1]
                     index = Animesources().page_navigation(name, pages, index)
                     if pages == 1:
                         web_url = url + "0"
                     else:
-                        web_url = url + str(index*20)
+                        web_url = url + str((index-1)*20)
                     if name != "Next Page" and name != "Previous Page":
                         # Sending get request to the "manga_link" website.
                         driver.get(url)
@@ -295,8 +278,10 @@ class Animesources:
                             link_list.append(base_url + links["href"])
                         name_list.reverse()
                         link_list.reverse()
+                        for i, names in zip(index_list, name_list):
+                            print(f"{i}. {names}")
                         # Using core method as function to get rid of repeating the same lines.
-                        data = Animesources().no_page(name_list, link_list, index_list)
+                        data = Animesources().user_choice(name_list, link_list, index_list)
                         url = data[0]
                         # Sending request with selenium webdriver.
                         driver.get(url)
@@ -315,7 +300,9 @@ class Animesources:
                             link_list.append(links["href"]) 
                         name_list.reverse()
                         link_list.reverse()
-                        data = Animesources().no_page(name_list, link_list, index_list)
+                        for i, names in zip(index_list, name_list):
+                            print(f"{i}. {names}")
+                        data = Animesources().user_choice(name_list, link_list, index_list)
                         url = data[0]
                         Animesources().download(name, url)
                         print("\nDownload Complete.")
@@ -355,7 +342,6 @@ class Animesources:
                     df = Animesources().visual_tables(table)
                     df_table = df.iloc[:, [1, 3]]
                     df_table.index += 1
-                    print(df_table)
                     index_list = df_table.index.tolist()
                     name_list = df[df.columns[1]].values.tolist()
                     link_list = []
@@ -363,7 +349,16 @@ class Animesources:
                     for a_html in td_tag:
                         for links in a_html.find_all("a", title=True, class_=None, href=True):
                             link_list.append(base_url + links["href"])
-                    data = Animesources().user_choice(name_list, link_list, index_list, page_url)
+                    index_list.append(0)
+                    name_list.append("Next Page")
+                    link_list.append(page_url)
+                    index_list.append(len(df_table.index.tolist())+1)
+                    name_list.append("Previous Page")
+                    link_list.append(page_url)
+                    print("0. Next Page")
+                    print(df_table)
+                    print(f"{len(df_table.index.tolist())+1}. Previous Page")
+                    data = Animesources().user_choice(name_list, link_list, index_list)
                     url = data[0]
                     name = data[1]
                     index = Animesources().page_navigation(name, pages, index)

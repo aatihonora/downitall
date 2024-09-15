@@ -2,11 +2,12 @@
 
 #Importing necessary modules
 import os
+import platform
 import re
 import shutil
 import subprocess
-import sys
 import time
+import webbrowser
 
 import pandas as pd
 import questionary
@@ -97,32 +98,25 @@ class Booksources:
         return df
 ############################################################################
     # Defining the function for player to choose the index.
-    def user_choice(self, name_list, link_list, index_list, page_url):
+    def user_choice(self, name_list, link_list, index_list):
         # Appendind data for next and previous page.
-        name_list.append("Next Page")
-        link_list.append(page_url)
-        index_list.append(0)
-        name_list.append("Previous Page")
-        link_list.append(page_url)
-        index = len(index_list)
-        index_list.append(index)
         # Creating two dictionary that take key as index and value as items from "link_list" and "name_list" respectively.
         url_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
         name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
         try:
             # If statement in case no manga/chapter was found.
-            if len(link_list) == 2:
+            if len(link_list) == 2 :
                 print(f'Sorry could not found anything :(!')
             else:
                 # Matching the user selection with "urls_dict" dictionary to get its value.
-                selection = int(input(f"\n0 for Next Page | {index} for Previous Page\n\nSelect the index number: "))
+                selection = int(input("\n\nSelect the index number: "))
                 if selection in url_dict:
                     # Getting the name and link by matching the index number from dictionaries.
                     link = f"{url_dict[selection]}"
                     name = f"{name_dict[selection]}"
                     print("Fetching, please wait...")
                     subprocess.call(["clear"])
-                    return link, name
+                    return [link, name, selection]
                 else:
                     raise ValueError
         except ValueError:
@@ -196,7 +190,6 @@ class Booksources:
                     df_table = df.iloc[:, [0, 6, 7]]
                     # Making table index start from 1.
                     df_table.index += 1
-                    print(df_table)
                     # Converting index column into index list.
                     index_list = df_table.index.tolist()
                     name_list = []
@@ -208,8 +201,17 @@ class Booksources:
                     html_tag = soup.find_all("a", attrs={"data-original-title": "libgen"})
                     for links in html_tag:
                         link_list.append(base_url + links["href"])
+                    index_list.append(0)
+                    name_list.append("Next Page")
+                    link_list.append(page_url)
+                    index_list.append(len(df_table.index.tolist())+1)
+                    name_list.append("Previous Page")
+                    link_list.append(page_url)
+                    print("0. Next Page")
+                    print(df_table)
+                    print(f"{len(df_table.index.tolist())+1}. Previous Page")
                     # Calling the user choice function.
-                    data = Booksources().user_choice(name_list, link_list, index_list, page_url)
+                    data = Booksources().user_choice(name_list, link_list, index_list)
                     url = data[0]
                     name = data[1]
                     index = Booksources().page_navigation(name, pages, index)
@@ -276,19 +278,25 @@ class Booksources:
                     # Creating index, name and link list and appending the respective items.
                     index_list = []
                     name_list = []
+                    link_list = []
+                    index_list.append(0)
+                    name_list.append("Next Page")
+                    link_list.append(page_url)
                     for i, name in enumerate(h3_tag, start=1):
                         name_list.append(name.text.strip())
                         index_list.append(i)
-                    link_list = []
                     div_tag = soup.find_all("div", class_="h-[125] flex flex-col justify-center")
                     for a_tag in div_tag:
                         for links in a_tag.find_all("a"):
                             link_list.append(base_url + links["href"])
+                    index_list.append(i+1)
+                    name_list.append("Previous Page")
+                    link_list.append(page_url)
                     # Iterating using zip as it lets two list loop together
                     for index_name, name in zip(index_list, name_list):
                         # Printing name with index for user to choose.
                         print(f"{index_name}. {name}")
-                    data = Booksources().user_choice(name_list, link_list, index_list, page_url)
+                    data = Booksources().user_choice(name_list, link_list, index_list)
                     url = data[0]
                     name = data[1]
                     index = Booksources().page_navigation(name, pages, index)
@@ -302,8 +310,12 @@ class Booksources:
                 # Finding all the mentioned elements in the webpage.
                 html_tag = soup.find_all("ul", class_="list-inside mb-4 ml-1")[1]
                 link = html_tag.find_all("a")[-1]
-                link = base_url + link["href"]
-                print(f"{name}\n{link}")
+                url = base_url + link["href"]
+                platforms = platform.system()
+                if platforms == "Linux":
+                    subprocess.Popen(["am", "start", "-n", "com.android.chrome/com.google.android.apps.chrome.Main", url])
+                else:
+                    webbrowser.open(url, new=2)
                 Booksources().retry(source, search_term, choice)
             except SessionNotCreatedException:
                 print("If you are not using android then install from win_linux_requirement.txt file")
@@ -346,7 +358,6 @@ class Booksources:
                     df = Booksources().visual_tables(table)
                     df_table = df.iloc[:, [0, 1]]
                     df_table.index += 1
-                    print(df_table)
                     index_list = df_table.index.tolist()
                     name_list = df[df.columns[0]].values.tolist()
                     link_list = []
@@ -354,7 +365,16 @@ class Booksources:
                     for a_tag in td_tag:
                         links = a_tag.find("a", text=True)
                         link_list.append(base_url + links["href"])
-                    book_tuple = Booksources().user_choice(name_list, link_list, index_list, page_url)
+                    index_list.append(0)
+                    name_list.append("Next Page")
+                    link_list.append(page_url)
+                    index_list.append(len(df_table.index.tolist())+1)
+                    name_list.append("Previous Page")
+                    link_list.append(page_url)
+                    print("0. Next Page")
+                    print(df_table)
+                    print(f"{len(df_table.index.tolist())+1}. Previous Page")
+                    book_tuple = Booksources().user_choice(name_list, link_list, index_list)
                     url = book_tuple[0]
                     name = book_tuple[1]
                     index = Booksources().page_navigation(name, pages, index)
