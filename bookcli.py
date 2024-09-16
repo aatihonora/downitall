@@ -17,7 +17,7 @@ tv = Tvsources()
 music = Musicsources()
 # Space for functions start from here
 
-def choice():
+def questions():
     """Function to start the core app."""
 
     type = questionary.select("Select item", choices=["Anime", "Book", "Manga", "Music", "TV/Movie", "Exit"]).ask()
@@ -37,7 +37,7 @@ def choice():
         elif select == "Kayoanime":
             anime.Kayoanime().kayoanime_search(search_term)
         else:
-            choice()
+            questions()
     elif type == "Book":
         search_term = input("Enter the title or the author of the Book: ")
         select = questionary.select("Select item", choices=["Libgen", "Annas Archive", "1337x", "Reset"]).ask()
@@ -60,7 +60,7 @@ def choice():
         elif select == "1337x":
             books.Torrent().torrent_search(search_term)
         else:
-            choice()
+            questions()
     elif type == "Manga":
         search_term = input("Enter the title of the Manga: ")
         select = questionary.select("Select item", choices=["Bato", "Mangasee", "ComicExtra", "Reset"]).ask()
@@ -71,7 +71,7 @@ def choice():
         elif select == "ComicExtra":
             manga.Comicextra().comicextra(search_term)
         else:
-            choice()
+            questions()
     elif type == "Music":
         search_term = input("Enter the title of the Music or Podcast: ")
         select = questionary.select("Select item", choices=["Lightaudio", "Bomb-music", "PlayerFM", "Reset"]).ask()
@@ -82,7 +82,7 @@ def choice():
         elif select == "PlayerFM":
             music.Player_fm().player(search_term)
         else:
-            choice()
+            questions()
     elif type == "TV/Movie":
         search_term = input("Enter the title of the TV-Series/Movie: ")
         select = questionary.select("Select item", choices=["Vadapav", "1337x", "Documentaries", "Reset"]).ask()
@@ -99,7 +99,7 @@ def choice():
         elif select == "Documentaries":
             tv.Documentary().documentary()
         else:
-            choice()
+            questions()
     elif type == "Exit":
         pass
 
@@ -133,4 +133,5 @@ TV-Series/Movies: Vadapav, 1337x(*), Documentaries
 subprocess.call(["clear"])
 print(logo.center(20))
 
-choice()
+questions()
+choice = 0

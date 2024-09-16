@@ -6,6 +6,7 @@ import platform
 import re
 import shutil
 import subprocess
+import sys
 import time
 import webbrowser
 
@@ -98,15 +99,22 @@ class Booksources:
         return df
 ############################################################################
     # Defining the function for player to choose the index.
-    def user_choice(self, name_list, link_list, index_list):
+    def user_choice(self, name_list, link_list, index_list, label):
         # Appendind data for next and previous page.
         # Creating two dictionary that take key as index and value as items from "link_list" and "name_list" respectively.
         url_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
         name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
         try:
             # If statement in case no manga/chapter was found.
-            if len(link_list) == 2 :
-                print(f'Sorry could not found anything :(!')
+            if label == "no_page" and not name_list:
+                print("\nCould not find any thing :(")
+                sys.exit()
+            elif label == "paged" and len(name_list) == 2:
+                print("\nCould not find any thing :(")
+                sys.exit()
+            elif label == "next_only" and len(name_list) == 1:
+                print("\nCould not find any thing :(")
+                sys.exit()
             else:
                 # Matching the user selection with "urls_dict" dictionary to get its value.
                 selection = int(input("\n\nSelect the index number: "))
@@ -114,13 +122,13 @@ class Booksources:
                     # Getting the name and link by matching the index number from dictionaries.
                     link = f"{url_dict[selection]}"
                     name = f"{name_dict[selection]}"
-                    print("Fetching, please wait...")
+                    print("\nFetching, please wait...")
                     subprocess.call(["clear"])
                     return [link, name, selection]
                 else:
                     raise ValueError
         except ValueError:
-            print("Invalid integer. The number must be in the range.")
+            print("\nInvalid integer. The number must be in the range.")
 ############################################################################
     def download(self, name, url):
         # Reformatting the book name to a standard name and sending a request to server with connection as active.
@@ -135,9 +143,9 @@ class Booksources:
                     # Downloading image via shutil.
                     with open(book_name,'wb') as f:
                         shutil.copyfileobj(raw, f)
-                print('Book sucessfully Downloaded: ',book_name)
+                print("\nBook sucessfully Downloaded: ",book_name)
             else:
-                print('Book couldn\'t be retrieved')
+                print("\nBook couldn\'t be retrieved")
 ############################################################################
     # Defining the function for retrying the user_choice function.
     def retry(self, source, search_term, choice):
@@ -155,6 +163,7 @@ class Booksources:
         def libgen_search(self, search_term, choice):
             # Declaring function level variables.
             source = "libgen"
+            label = "paged"
             index = 1
             # Making search term better for url through regex.
             term = re.sub("\W", "+", search_term)
@@ -177,9 +186,9 @@ class Booksources:
                     soup = BeautifulSoup(driver.page_source, "html.parser")
                     # Checking weather the element exists.
                     if Booksources().exists(element = ".paginator.fullsize"):
-                        div_tag = soup.find("div", class_="paginator fullsize")
+                        html_tag = soup.find("div", class_="paginator fullsize")
                         # Finding the last td tag and getting its text which is the number of last page and converting it into integer.
-                        pages = int(div_tag.find_all("td", colspan=None)[-1].getText())
+                        pages = int(html_tag.find_all("td", colspan=None)[-1].getText())
                     else:
                         pages = 1
                     # Finding all the mentioned elements from webpage.
@@ -207,11 +216,11 @@ class Booksources:
                     index_list.append(len(df_table.index.tolist())+1)
                     name_list.append("Previous Page")
                     link_list.append(page_url)
-                    print("0. Next Page")
+                    print("\n0. Next Page")
                     print(df_table)
                     print(f"{len(df_table.index.tolist())+1}. Previous Page")
                     # Calling the user choice function.
-                    data = Booksources().user_choice(name_list, link_list, index_list)
+                    data = Booksources().user_choice(name_list, link_list, index_list, label)
                     url = data[0]
                     name = data[1]
                     index = Booksources().page_navigation(name, pages, index)
@@ -229,19 +238,20 @@ class Booksources:
                 Booksources().download(name, url)
                 Booksources().retry(source, search_term, choice)
             except SessionNotCreatedException:
-                print("If you are not using android then install from win_linux_requirement.txt file")
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-                print("Network Error!")
-            except (TypeError, urllib3.exceptions.ProtocolError):
-                pass
-            except AttributeError:
-                print(f"No book with title {search_term} found :(")
+                print("\nNetwork Error!")
+            except (TypeError, urllib3.exceptions.ProtocolError) as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError): 
+                print("\nCould not find any thing :(")
             except KeyboardInterrupt:
-                print("Cancelled by user.")
+                print("\n\nCancelled by user.")
 ############################################################################
     class Annas_Archive:
         def annas_archive_search(self,search_term, choice):
             source = "annas_archive"
+            label = "paged"
             index = 1
             # Making search term better for url through regex.
             term = re.sub("\W", "+", search_term)
@@ -269,8 +279,8 @@ class Booksources:
                     soup = BeautifulSoup(driver.page_source, "html.parser")
                     # Checking weather the element exists.
                     if Booksources().exists(element = ".isolate.inline-flex.-space-x-px.rounded-md.shadow-sm.text-xs"):
-                        div_tag = soup.find("nav", class_="isolate inline-flex -space-x-px rounded-md shadow-sm text-xs")
-                        pages = int(div_tag.find_all("a", class_="custom-a relative inline-flex items-center px-2 py-2 font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0")[-1].getText())
+                        html_tag = soup.find("nav", class_="isolate inline-flex -space-x-px rounded-md shadow-sm text-xs")
+                        pages = int(html_tag.find_all("a", class_="custom-a relative inline-flex items-center px-2 py-2 font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0")[-1].getText())
                     else:
                         pages = 1
                     # Finding all the mentioned elements from webpage.
@@ -293,10 +303,11 @@ class Booksources:
                     name_list.append("Previous Page")
                     link_list.append(page_url)
                     # Iterating using zip as it lets two list loop together
+                    print("\n")
                     for index_name, name in zip(index_list, name_list):
                         # Printing name with index for user to choose.
                         print(f"{index_name}. {name}")
-                    data = Booksources().user_choice(name_list, link_list, index_list)
+                    data = Booksources().user_choice(name_list, link_list, index_list, label)
                     url = data[0]
                     name = data[1]
                     index = Booksources().page_navigation(name, pages, index)
@@ -318,19 +329,21 @@ class Booksources:
                     webbrowser.open(url, new=2)
                 Booksources().retry(source, search_term, choice)
             except SessionNotCreatedException:
-                print("If you are not using android then install from win_linux_requirement.txt file")
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-                print("Network Error!")
-            except TypeError:
-                pass
-            except FileNotFoundError:
-                pass
+                print("\nNetwork Error!")
+            except (TypeError, FileNotFoundError) as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError): 
+                print("\nCould not find any thing :(")
             except KeyboardInterrupt:
-                print("Cancelled by user.")
+                print("\n\nCancelled by user.")
 ############################################################################
     class Torrent:
         def torrent_search(self, search_term):
             source = "1337x"
+            label = "paged"
+            choice = 0
             index = 1
             term = re.sub("\W", "+", search_term)
             # Url to access the searching.
@@ -345,10 +358,10 @@ class Booksources:
                     # Getting html page with BeautifulSoup module
                     soup = BeautifulSoup(driver.page_source, "html.parser")
                     if Booksources().exists(element = ".pagination"):
-                        div_tag = soup.find("div", class_="pagination")
-                        if div_tag.find("li", class_="last"):
-                            li_tag = div_tag.find("li", class_="last")
-                            pages = int(li_tag.find("a")["href"].split("desc/")[1].strip("/"))
+                        html_tag = soup.find("div", class_="pagination")
+                        if html_tag.find("li", class_="last"):
+                            tag = html_tag.find("li", class_="last")
+                            pages = int(tag.find("a")["href"].split("desc/")[1].strip("/"))
                         else:
                             pages = 1
                     else:
@@ -371,12 +384,12 @@ class Booksources:
                     index_list.append(len(df_table.index.tolist())+1)
                     name_list.append("Previous Page")
                     link_list.append(page_url)
-                    print("0. Next Page")
+                    print("\n0. Next Page")
                     print(df_table)
                     print(f"{len(df_table.index.tolist())+1}. Previous Page")
-                    book_tuple = Booksources().user_choice(name_list, link_list, index_list)
-                    url = book_tuple[0]
-                    name = book_tuple[1]
+                    data = Booksources().user_choice(name_list, link_list, index_list, label)
+                    url = data[0]
+                    name = data[1]
                     index = Booksources().page_navigation(name, pages, index)
                     web_url = url + str(index) + "/"
                     if name != "Next Page" and name != "Previous Page":
@@ -392,12 +405,15 @@ class Booksources:
                 # Calling the aria2c module to download.
                 args = ["aria2c", "--file-allocation=none", "--seed-time=0", "-d", dir, url]
                 subprocess.call(args)
+                Booksources().retry(source, search_term, choice)
             except SessionNotCreatedException:
-                print("If you are not using android then install from win_linux_requirement.txt file")
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-                print("Network Error!")
-            except TypeError:
-                pass
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError): 
+                print("\nCould not find any thing :(")
             except KeyboardInterrupt:
-                print("Cancelled by user.")
+                print("\n\nCancelled by user.")
 ############################################################################

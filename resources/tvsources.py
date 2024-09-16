@@ -4,7 +4,7 @@
 import os
 import re
 import subprocess
-import time
+import sys
 
 import pandas as pd
 import questionary
@@ -15,7 +15,6 @@ from selenium.common.exceptions import (NoSuchElementException,
                                         SessionNotCreatedException,
                                         TimeoutException, WebDriverException)
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 
 # Global variables.
 # Selenium Chrome options to lessen the memory usage.
@@ -86,17 +85,22 @@ class Tvsources:
         return df
 ############################################################################
     # Defining the function for player to choose the index.
-    def user_choice(self, name_list, link_list, index_list, source):
+    def user_choice(self, name_list, link_list, index_list, label):
         # Appendind data for next and previous page.
         # Creating two dictionary that take key as index and value as items from "link_list" and "name_list" respectively.
         url_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
         name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
         try:
             # If statement in case no manga/chapter was found.
-            if source == "vadapav" and not name_list:
-                print("Could not find any thing :(")
-            elif source != "vadapav" and name_list == 2:
-                print("Could not find any thing :(")
+            if label == "no_page" and not name_list:
+                print("\nCould not find any thing :(")
+                sys.exit()
+            elif label == "paged" and len(name_list) == 2:
+                print("\nCould not find any thing :(")
+                sys.exit()
+            elif label == "next_only" and len(name_list) == 1:
+                print("\nCould not find any thing :(")
+                sys.exit()
             else:
                 # Matching the user selection with "urls_dict" dictionary to get its value.
                 selection = int(input("\n\nSelect the index number: "))
@@ -104,13 +108,13 @@ class Tvsources:
                     # Getting the name and link by matching the index number from dictionaries.
                     link = f"{url_dict[selection]}"
                     name = f"{name_dict[selection]}"
-                    print("Fetching, please wait...")
+                    print("\nFetching, please wait...")
                     subprocess.call(["clear"])
                     return [link, name, selection]
                 else:
                     raise ValueError
         except ValueError:
-            print("Invalid integer. The number must be in the range.") 
+            print("\nInvalid integer. The number must be in the range.") 
 ############################################################################
     # Defining the function for retrying the user_choice function.
     def retry(self, source, search_term, choice):
@@ -127,6 +131,8 @@ class Tvsources:
     class Vadapav:
         def vadapav(self,search_term):
             source = "vadapav"
+            label = "no_page"
+            choice = 0
             # Url to access the searching.
             url = "https://vadapav.mov/s/" + search_term
             # Url to access the base website.
@@ -146,9 +152,10 @@ class Tvsources:
                         index_list.append(i)
                         name_list.append(links.text.strip())
                         link_list.append(base_url + links["href"]) 
+                    print("\n")
                     for i, name in zip(index_list, name_list):
                         print(f"{i}. {name}")
-                    data = Tvsources().user_choice(name_list, link_list, index_list, source)
+                    data = Tvsources().user_choice(name_list, link_list, index_list, label)
                     url = data[0]
                     name = data[1]
                     if "/f/" in url:
@@ -156,17 +163,23 @@ class Tvsources:
                 # Downloading the file with wget as it is fast and has its own progress bar.
                 args = ['wget', '-O', name, url]
                 subprocess.call(args)
-                print("Download Complete.")
+                print("\nDownload Complete.")
+                Tvsources().retry(source, search_term, choice)
             except SessionNotCreatedException:
-                print("If you are not using android then install from win_linux_requirement.txt file")
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-                print("Network Error!")
-            except TypeError:
-                pass
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(")
+            except KeyboardInterrupt:
+                print("\n\nCancelled by user.")
 ############################################################################
     class Torrent:
         def torrent_search(self, search_term, choice):
             source = "1337x"
+            label = "paged"
             index = 1
             term = re.sub("\W", "+", search_term)
             if choice == 1:
@@ -211,10 +224,10 @@ class Tvsources:
                     index_list.append(len(df_table.index.tolist())+1)
                     name_list.append("Previous Page")
                     link_list.append(page_url)
-                    print("0. Next Page")
+                    print("\n0. Next Page")
                     print(df_table)
                     print(f"{len(df_table.index.tolist())+1}. Previous Page")
-                    data = Tvsources().user_choice(name_list, link_list, index_list, source)
+                    data = Tvsources().user_choice(name_list, link_list, index_list, label)
                     url = data[0]
                     name = data[1]
                     index = Tvsources().page_navigation(name, pages, index)
@@ -234,19 +247,22 @@ class Tvsources:
                 subprocess.call(args)
                 Tvsources().retry(source, search_term, choice)
             except SessionNotCreatedException:
-                print("If you are not using android then install from win_linux_requirement.txt file")
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-                print("Network Error!")
-            except TypeError:
-                pass
-            except AttributeError:
-                print("Could not find any thing :(")
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(")
             except KeyboardInterrupt:
-                print("Cancelled by user.")
+                print("\n\nCancelled by user.")
 ############################################################################
     class Documentary:
         def documentary(self):
             source = "documentary"
+            label = "no_page"
+            choice = 0
+            search_term = ""
             index = 1
             # Url to access the searching.
             web_url = "https://documentaryheaven.com/watch-online/"
@@ -267,12 +283,14 @@ class Tvsources:
                     index_list.append(i)
                     name_list.append(links.text.replace("Browse ", ""))
                     link_list.append(base_url + links["href"])
+                print("\n")
                 for i, name in zip(index_list, name_list):
                     print(f"{i}. {name}")
-                data = Tvsources().user_choice(name_list, link_list, index_list, source)
+                data = Tvsources().user_choice(name_list, link_list, index_list, label)
                 web_url = data[0]
                 page_url = f"{web_url}/page/"
                 while True:
+                    label = "paged"
                     driver.get(web_url) 
                     soup = BeautifulSoup(driver.page_source, "html.parser")
                     if Tvsources().exists(element = ".numeric-nav"):
@@ -297,9 +315,10 @@ class Tvsources:
                     index_list.append(i+1)
                     name_list.append("Previous Page")
                     link_list.append(page_url)
+                    print("\n")
                     for i, name in zip(index_list, name_list):
                         print(f"{i}. {name}")
-                    data = Tvsources().user_choice(name_list, link_list, index_list, source)
+                    data = Tvsources().user_choice(name_list, link_list, index_list, label)
                     url = data[0]
                     name = data[1]
                     index = Tvsources().page_navigation(name, pages, index)
@@ -318,14 +337,15 @@ class Tvsources:
                     url = html_tag["content"]
                 args = ["yt-dlp", url]
                 subprocess.call(args)
+                Tvsources().retry(source, search_term, choice)
             except SessionNotCreatedException:
-                print("If you are not using android then install from win_linux_requirement.txt file")
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-                print("Network Error!")
-            except TypeError:
-                pass
-            except AttributeError:
-                print("Could not find any thing :(")
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(")
             except KeyboardInterrupt:
-                print("Cancelled by user.")
+                print("\n\nCancelled by user.")
 ############################################################################

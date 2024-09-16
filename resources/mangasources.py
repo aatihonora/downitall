@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 
 import pandas as pd
 import questionary
@@ -90,17 +91,25 @@ class Mangasources:
         return df
 ############################################################################
     # Defining the function for player to choose the index.
-    def user_choice(self, name_list, link_list, index_list):
+    def user_choice(self, name_list, link_list, index_list, label):
         # Appendind data for next and previous page.
         # Creating two dictionary that take key as index and value as items from "link_list" and "name_list" respectively.
         url_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
         name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
+        print("\n")
         for key, value in name_dict.items():
             print(f'{key}. {value}')
         try:
             # If statement in case no manga/chapter was found.
-            if len(link_list) == 2 :
-                print(f'Sorry could not found anything :(!')
+            if label == "no_page" and not name_list:
+                print("\nCould not find any thing :(")
+                sys.exit()
+            elif label == "paged" and len(name_list) == 2:
+                print("\nCould not find any thing :(")
+                sys.exit()
+            elif label == "next_only" and len(name_list) == 1:
+                print("\nCould not find any thing :(")
+                sys.exit()
             else:
                 # Matching the user selection with "urls_dict" dictionary to get its value.
                 selection = int(input("\n\nSelect the index number: "))
@@ -108,13 +117,13 @@ class Mangasources:
                     # Getting the name and link by matching the index number from dictionaries.
                     link = f"{url_dict[selection]}"
                     name = f"{name_dict[selection]}"
-                    print("Fetching, please wait...")
+                    print("\nFetching, please wait...")
                     subprocess.call(["clear"])
                     return [link, name, selection]
                 else:
                     raise ValueError
         except ValueError:
-            print("Invalid integer. The number must be in the range.")
+            print("\nInvalid integer. The number must be in the range.")
 ############################################################################
     def confirmation(self, selection, index_list, img_list):
         img_dict = {index_list[i]: img_list[j] for i, j in enumerate(range(len(img_list)), start=1)}
@@ -172,16 +181,16 @@ class Mangasources:
                             # Downloading image via shutil.
                             with open(image,'wb') as f:
                                 shutil.copyfileobj(raw, f)
-                        print('Image sucessfully Downloaded: ',image)
+                        print("\nImage sucessfully Downloaded: ",image)
                     else:
-                        print('Image Couldn\'t be retrieved')
+                        print("\nImage Couldn\'t be retrieved")
             # Accessing the manga folder to compress chapter folder into cbz file.
             os.chdir(path)
             # Compressing chapter folder into cbz file using cbz_generator module.
             cbz_generator.create_cbz_archive(chapter, path, f'{manga}_{chapter}')
-            print("Download Complete")
+            print("\nDownload Complete")
         except OSError as e:
-            print(e)
+            print("\n", e)
 ############################################################################
     # Defining the function for retrying the user_choice function.
     def retry(self, source, search_term):
@@ -199,6 +208,7 @@ class Mangasources:
         def bato(self,search_term):
             # Declaring function level variables.
             source = "bato"
+            label = "paged"
             index = 1
             # Making search term better for url through regex.
             term = re.sub("\W", "+", search_term)
@@ -243,7 +253,7 @@ class Mangasources:
                         img_list.append(img["src"])
                     while True:
                         # Calling the user choice function.
-                        data = Mangasources().user_choice(name_list, link_list, index_list)
+                        data = Mangasources().user_choice(name_list, link_list, index_list, label)
                         url = data[0]
                         name = data[1]
                         selection = data[2]
@@ -260,6 +270,7 @@ class Mangasources:
                     if name != "Next Page" and name != "Previous Page":
                         break
                 # Sending request to the webpage.
+                label = "no_page"
                 driver.get(url)
                 # Parsering the response with "BeauitifulSoup".
                 soup = BeautifulSoup(driver.page_source, "html.parser")
@@ -278,7 +289,7 @@ class Mangasources:
                 name_list.reverse()
                 link_list.reverse()
                 # Using core method as function to get rid of repeating the same lines.
-                data = Mangasources().user_choice(name_list, link_list, index_list)
+                data = Mangasources().user_choice(name_list, link_list, index_list, label)
                 url = data[0]
                 chapter_name = data[1] 
                 # Sending request with selenium webdriver.
@@ -300,18 +311,21 @@ class Mangasources:
                 Mangasources().download_compress(name, chapter_name, img_links_list)
                 Mangasources().retry(source, search_term)
             except SessionNotCreatedException:
-                print("If you are not using android then install from win_linux_requirement.txt file")
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-                print("Network Error!")
-            except TypeError:
-                pass
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(")
             except KeyboardInterrupt:
-                print("Cancelled by user.")
+                print("\n\nCancelled by user.")
 ############################################################################
     class Mangasee:
         def mangasee(self, search_term):
             # Declaring function level variables.
             source = "mangasee"
+            label = "next_only"
             # Making search term better for url through regex.
             term = re.sub("\W", "+", search_term)
             # Url to access webpage. 
@@ -342,7 +356,7 @@ class Mangasources:
                     for img in html_tag:
                         img_list.append(img["src"])
                     # Calling the user choice function.
-                    data = Mangasources().user_choice(name_list, link_list, index_list)
+                    data = Mangasources().user_choice(name_list, link_list, index_list, label)
                     url = data[0]
                     name = data[1]
                     selection = data[2]
@@ -356,6 +370,7 @@ class Mangasources:
                         if Mangasources().exists(element = ".btn.btn-outline-primary.form-control.top-15.bottom-5.ng-scope") == True:
                             WebDriverWait(driver,1).until(EC.element_to_be_clickable((By.CSS_SELECTOR,".btn.btn-outline-primary.form-control.top-15.bottom-5.ng-scope"))).click()
                 # Sending request to the webpage.
+                label = "no_page"
                 driver.get(url)
                 if Mangasources().exists(element = ".list-group-item.ShowAllChapters.ng-scope") == True:
                     WebDriverWait(driver,1).until(EC.element_to_be_clickable((By.CSS_SELECTOR,".list-group-item.ShowAllChapters.ng-scope"))).click()
@@ -376,7 +391,7 @@ class Mangasources:
                 name_list.reverse()
                 link_list.reverse()
                 # Using core method as function to get rid of repeating the same lines.
-                data = Mangasources().user_choice(name_list, link_list, index_list)
+                data = Mangasources().user_choice(name_list, link_list, index_list, label)
                 url = data[0]
                 chapter_name = data[1] 
                 # Sending request with selenium webdriver.
@@ -399,18 +414,21 @@ class Mangasources:
                 Mangasources().download_compress(name, chapter_name, img_links_list)
                 Mangasources().retry(source, search_term)
             except SessionNotCreatedException:
-                print("If you are not using android then install from win_linux_requirement.txt file")
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-                print("Network Error!")
-            except TypeError:
-                pass
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(")
             except KeyboardInterrupt:
-                print("Cancelled by user.")
+                print("\n\nCancelled by user.")
 ############################################################################
     class Comicextra:
         def comicextra(self, search_term):
             # Declaring function level variables.
             source = "comicextra"
+            label = "paged"
             index = 1
             # Making search term better for url through regex.
             term = re.sub("\W", "+", search_term)
@@ -456,7 +474,7 @@ class Mangasources:
                             img_list.append(img["src"])
                     while True:        
                         # Calling the user choice function.
-                        data = Mangasources().user_choice(name_list, link_list, index_list)
+                        data = Mangasources().user_choice(name_list, link_list, index_list, label)
                         url = data[0]
                         name = data[1]
                         selection = data[2]
@@ -472,6 +490,7 @@ class Mangasources:
                     web_url = url + str(index)
                     if name != "Next Page" and name != "Previous Page":
                         break
+                label = "no_page"
                 # Sending request to the webpage.
                 driver.get(url)
                 # Parsering the response with "BeauitifulSoup".
@@ -493,7 +512,7 @@ class Mangasources:
                 name_list.reverse()
                 link_list.reverse()
                 # Using core method as function to get rid of repeating the same lines.
-                data = Mangasources().user_choice(name_list, link_list, index_list)
+                data = Mangasources().user_choice(name_list, link_list, index_list, label)
                 url = data[0]
                 chapter_name = data[1] 
                 # Sending request with selenium webdriver.
@@ -516,11 +535,13 @@ class Mangasources:
                 Mangasources().download_compress(name, chapter_name, img_links_list)
                 Mangasources().retry(source, search_term)
             except SessionNotCreatedException:
-                print("If you are not using android then install from win_linux_requirement.txt file")
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-                print("Network Error!")
-            except TypeError:
-                pass
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(")
             except KeyboardInterrupt:
-                print("Cancelled by user.")
+                print("\n\nCancelled by user.")
 ############################################################################

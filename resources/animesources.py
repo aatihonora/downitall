@@ -4,6 +4,7 @@
 import os
 import re
 import subprocess
+import sys
 import time
 
 import gdown
@@ -91,15 +92,22 @@ class Animesources:
         return df
 ############################################################################
     # Defining the function for player to choose the index.
-    def user_choice(self, name_list, link_list, index_list):
+    def user_choice(self, name_list, link_list, index_list, label):
         # Appendind data for next and previous page.
         # Creating two dictionary that take key as index and value as items from "link_list" and "name_list" respectively.
         url_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
         name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
         try:
             # If statement in case no manga/chapter was found.
-            if len(link_list) == 2 :
-                print(f'Sorry could not found anything :(!')
+            if label == "no_page" and not name_list:
+                print("\nCould not find any thing :(")
+                sys.exit()
+            elif label == "paged" and len(name_list) == 2:
+                print("\nCould not find any thing :(")
+                sys.exit()
+            elif label == "next_only" and len(name_list) == 1:
+                print("\nCould not find any thing :(")
+                sys.exit()
             else:
                 # Matching the user selection with "urls_dict" dictionary to get its value.
                 selection = int(input("\n\nSelect the index number: "))
@@ -107,13 +115,13 @@ class Animesources:
                     # Getting the name and link by matching the index number from dictionaries.
                     link = f"{url_dict[selection]}"
                     name = f"{name_dict[selection]}"
-                    print("Fetching, please wait...")
+                    print("\nFetching, please wait...")
                     subprocess.call(["clear"])
                     return [link, name, selection]
                 else:
                     raise ValueError
         except ValueError:
-            print("Invalid integer. The number must be in the range.")
+            print("\nInvalid integer. The number must be in the range.")
 ############################################################################
     def download(self, anime_name, url):
         # Making the folder and opening it
@@ -126,7 +134,7 @@ class Animesources:
         # Downloading the file with wget as it is fast and has its own progress bar.
         args = ['wget', url]
         subprocess.call(args)
-        print("Download Complete.")
+        print("\nDownload Complete.")
 ############################################################################
     # Defining the function for retrying the user_choice function.
     def retry(self, source, search_term, choice):
@@ -134,7 +142,7 @@ class Animesources:
         answer = questionary.select("Do you want to download another file? ", choices=["Yes", "No"]).ask()
         if answer == "Yes":
             if source == "kayoanime":
-                Animesources().Kayoanime().kayoanime_search(search_term, choice)
+                Animesources().Kayoanime().kayoanime_search(search_term)
             if source == "tokyoinsider":
                 Animesources().Tokyoinsider().tokyoinsider_search(search_term, choice)
             else:
@@ -143,7 +151,9 @@ class Animesources:
     class Kayoanime:
         def kayoanime_search(self,search_term):
             source = "kayoanime"
-            web_url = f"https://kayoanime.com/{search_term}"
+            label = "next_only"
+            choice = 0
+            web_url = f"https://kayoanime.com/?s={search_term}"
             try:
                 # Sending request to the webpage.
                 driver.get(web_url)
@@ -151,7 +161,7 @@ class Animesources:
                 while True:
                     soup = BeautifulSoup(driver.page_source, "html.parser")
                     # Finding all the mentioned elements from webpage.
-                    html_tag = soup.find_all("a", class_="post-thumb", attrs={"aria-label" : True})
+                    html_tag = soup.find("div", class_="container-wrapper").find_all("a", class_="post-thumb", attrs={"aria-label" : True})
                     index_list = []
                     name_list = []
                     link_list = []
@@ -162,9 +172,10 @@ class Animesources:
                         index_list.append(i)
                         name_list.append(links["aria-label"].strip())
                         link_list.append(links["href"])
+                    print("\n")
                     for i, names in zip(index_list, name_list):
                         print(f"{i}. {names}")
-                    data = Animesources().user_choice(name_list, link_list, index_list)
+                    data = Animesources().user_choice(name_list, link_list, index_list, label)
                     url = data[0]
                     name = data[1]
                     if name == "Next Page":
@@ -185,20 +196,23 @@ class Animesources:
                 gdown.download_folder(url)
                 Animesources().retry(source, search_term, choice)
             except SessionNotCreatedException:
-                print("If you are not using android then install from win_linux_requirement.txt file")
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-                print("Network Error!")
-            except TypeError:
-                pass
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(") 
             except (RuntimeError, gdown.exceptions.FileURLRetrievalError, gdown.exceptions.FolderContentsMaximumLimitError, PermissionError):
-                print("Google file is either private or unavilable")
+                print("\nGoogle file is either private or unavilable")
             except KeyboardInterrupt:
-                print("Cancelled by user.")
+                print("\n\nCancelled by user.")
 ############################################################################
     class Tokyoinsider:
         def tokyoinsider_search(self, search_term, choice):
             # Declaring function level variables.
             source = "tokyoinsider"
+            label = "paged"
             index = 1
             # Making search term better for url through regex.
             term = re.sub("\W", "+", search_term)
@@ -221,9 +235,9 @@ class Animesources:
                     soup = BeautifulSoup(driver.page_source, "html.parser")
                     # Checking weather the element exists.
                     if Animesources().exists(element = ".pager"):
-                        div_tag = soup.find("div", class_="pager")
+                        html_tag = soup.find("div", class_="pager")
                         # Finding the last td tag and getting its text which is the number of last page and converting it into integer.
-                        pages = int(div_tag.find_all("a", class_=None)[-1].getText())
+                        pages = int(html_tag.find_all("a", class_=None)[-1].getText())
                     else:
                         pages = 1
                     # Finding all the mentioned elements from webpage.
@@ -248,11 +262,11 @@ class Animesources:
                     index_list.append(len(df_table.index.tolist())+1)
                     name_list.append("Previous Page")
                     link_list.append(page_url)
-                    print("0. Next Page")
+                    print("\n0. Next Page")
                     print(df_table)
                     print(f"{len(df_table.index.tolist())+1}. Previous Page")
                     # Calling the user choice function.
-                    data = Animesources().user_choice(name_list, link_list, index_list)
+                    data = Animesources().user_choice(name_list, link_list, index_list, label)
                     url = data[0]
                     name = data[1]
                     index = Animesources().page_navigation(name, pages, index)
@@ -262,6 +276,7 @@ class Animesources:
                         web_url = url + str((index-1)*20)
                     if name != "Next Page" and name != "Previous Page":
                         # Sending get request to the "manga_link" website.
+                        label = "no_page"
                         driver.get(url)
                         # Parsering the response with "BeauitifulSoup".
                         soup = BeautifulSoup(driver.page_source, "html.parser")
@@ -278,12 +293,14 @@ class Animesources:
                             link_list.append(base_url + links["href"])
                         name_list.reverse()
                         link_list.reverse()
+                        print("\n")
                         for i, names in zip(index_list, name_list):
                             print(f"{i}. {names}")
                         # Using core method as function to get rid of repeating the same lines.
-                        data = Animesources().user_choice(name_list, link_list, index_list)
+                        data = Animesources().user_choice(name_list, link_list, index_list, label)
                         url = data[0]
                         # Sending request with selenium webdriver.
+                        label = "no_page"
                         driver.get(url)
                         # Parsering the response with "BeauitifulSoup".
                         soup = BeautifulSoup(
@@ -300,25 +317,31 @@ class Animesources:
                             link_list.append(links["href"]) 
                         name_list.reverse()
                         link_list.reverse()
+                        print("\n")
                         for i, names in zip(index_list, name_list):
                             print(f"{i}. {names}")
-                        data = Animesources().user_choice(name_list, link_list, index_list)
+                        data = Animesources().user_choice(name_list, link_list, index_list, label)
                         url = data[0]
                         Animesources().download(name, url)
+                        Animesources().retry(source, search_term, choice)
                         print("\nDownload Complete.")
                         break
             except SessionNotCreatedException:
-                print("If you are not using android then install from win_linux_requirement.txt file")
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-                print("Network Error!")
-            except TypeError:
-                pass
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(") 
             except KeyboardInterrupt:
-                print("Cancelled by user.")
+                print("\n\nCancelled by user.")
 ############################################################################
     class Nyaa:
         def nyaa_search(self, search_term):
             source = "nyaa"
+            label = "paged"
+            choice = 0
             index = 1
             term = re.sub("\W", "+", search_term)
             # Url to access the searching.
@@ -355,10 +378,10 @@ class Animesources:
                     index_list.append(len(df_table.index.tolist())+1)
                     name_list.append("Previous Page")
                     link_list.append(page_url)
-                    print("0. Next Page")
+                    print("\n0. Next Page")
                     print(df_table)
                     print(f"{len(df_table.index.tolist())+1}. Previous Page")
-                    data = Animesources().user_choice(name_list, link_list, index_list)
+                    data = Animesources().user_choice(name_list, link_list, index_list, label)
                     url = data[0]
                     name = data[1]
                     index = Animesources().page_navigation(name, pages, index)
@@ -377,13 +400,15 @@ class Animesources:
                 url = html_tag["href"]
                 args = ["aria2c", "--file-allocation=none", "--seed-time=0", "-d", dir, url]
                 subprocess.call(args)
-                Animesources().retry(source, search_term, choice="")
+                Animesources().retry(source, search_term, choice)
             except SessionNotCreatedException:
-                print("If you are not using android then install from win_linux_requirement.txt file")
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-                print("Network Error!")
-            except TypeError:
-                pass
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(") 
             except KeyboardInterrupt:
-                print("Cancelled by user.")
+                print("\n\nCancelled by user.")
 ############################################################################

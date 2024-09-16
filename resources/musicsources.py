@@ -4,6 +4,7 @@
 import os
 import re
 import subprocess
+import sys
 import time
 
 import pandas as pd
@@ -15,7 +16,6 @@ from selenium.common.exceptions import (NoSuchElementException,
                                         SessionNotCreatedException,
                                         TimeoutException, WebDriverException)
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 
 # Global variables.
 # Selenium Chrome options to lessen the memory usage.
@@ -86,17 +86,25 @@ class Musicsources:
         return df
 ############################################################################
     # Defining the function for player to choose the index.
-    def user_choice(self, name_list, link_list, index_list):
+    def user_choice(self, name_list, link_list, index_list, label):
         # Appendind data for next and previous page.
         # Creating two dictionary that take key as index and value as items from "link_list" and "name_list" respectively.
         url_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
         name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
+        print("\n")
         for key, value in name_dict.items():
             print(f'{key}. {value}')
         try:
             # If statement in case no manga/chapter was found.
-            if len(link_list) == 2 :
-                print(f'Sorry could not found anything :(!')
+            if label == "no_page" and not name_list:
+                print("\nCould not find any thing :(")
+                sys.exit()
+            elif label == "paged" and len(name_list) == 2:
+                print("\nCould not find any thing :(")
+                sys.exit()
+            elif label == "next_only" and len(name_list) == 1:
+                print("\nCould not find any thing :(")
+                sys.exit()
             else:
                 # Matching the user selection with "urls_dict" dictionary to get its value.
                 selection = int(input("\n\nSelect the index number: "))
@@ -104,13 +112,13 @@ class Musicsources:
                     # Getting the name and link by matching the index number from dictionaries.
                     link = f"{url_dict[selection]}"
                     name = f"{name_dict[selection]}"
-                    print("Fetching, please wait...")
+                    print("\nFetching, please wait...")
                     subprocess.call(["clear"])
                     return [link, name, selection]
                 else:
                     raise ValueError
         except ValueError:
-            print("Invalid integer. The number must be in the range.")
+            print("\nInvalid integer. The number must be in the range.")
 ############################################################################
     def download(self, name, url):
         # Making the folder and opening it
@@ -123,7 +131,7 @@ class Musicsources:
         # Downloading the file with wget as it is fast and has its own progress bar.
         args = ['wget', '-O', name, f"{url}"]
         subprocess.call(args)
-        print("Download Complete.")
+        print("\nDownload Complete.")
 ############################################################################
     # Defining the function for retrying the user_choice function.
     def retry(self, source, search_term):
@@ -141,6 +149,7 @@ class Musicsources:
         def lightaudio(self,search_term):
             # Declaring function level variables.
             source = "lightaudio"
+            label = "paged"
             index = 1
             # Making search term better for url through regex.
             term = re.sub("\W", "+", search_term)
@@ -180,7 +189,7 @@ class Musicsources:
                     link_list.append(page_url)
                     index_list.append(i+1)
                     # Calling the user choice function.
-                    data = Musicsources().user_choice(name_list, link_list, index_list)
+                    data = Musicsources().user_choice(name_list, link_list, index_list, label)
                     url = data[0]
                     name = data[1]
                     index = Musicsources().page_navigation(name, pages, index)
@@ -191,13 +200,13 @@ class Musicsources:
                 Musicsources().download(name, url)
                 Musicsources().retry(source, search_term)
             except SessionNotCreatedException:
-                print("If you are not using android then install from win_linux_requirement.txt file")
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-                print("Network Error!")
-            except TypeError:
-                pass
-            except IndexError:
-                print("Did not find anything.")
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(")
             except KeyboardInterrupt:
                 print("\n\nCancelled by user.")
 ############################################################################
@@ -205,6 +214,7 @@ class Musicsources:
         def bombmusic(self,search_term):
             # Declaring function level variables.
             source = "bombmusic"
+            label = "no_page"
             # Making search term better for url through regex.
             term = re.sub("\W", "+", search_term)
             # Url to access webpage.
@@ -229,19 +239,19 @@ class Musicsources:
                 for names in html_tag_name:
                     name_list.append(names.text.strip())
                 # Calling the user choice function.
-                data = Musicsources().user_choice(name_list, link_list, index_list)
+                data = Musicsources().user_choice(name_list, link_list, index_list, label)
                 url = data[0]
                 name = data[1] + ".mp3"
                 Musicsources().download(name, url)
                 Musicsources().retry(source, search_term)
             except SessionNotCreatedException:
-                print("If you are not using android then install from win_linux_requirement.txt file")
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-                print("Network Error!")
-            except TypeError:
-                pass
-            except IndexError:
-                print("Did not find anything.")
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(")
             except KeyboardInterrupt:
                 print("\n\nCancelled by user.")
 ############################################################################
@@ -249,6 +259,7 @@ class Musicsources:
         def player(self,search_term):
             # Declaring function level variables.
             source = "player_fm"
+            label = "next_only"
             # Making search term better for url through regex.
             term = re.sub("\W", "+", search_term)
             # Url to access webpage.
@@ -275,7 +286,7 @@ class Musicsources:
                         name_list.append(link.text.strip())
                         link_list.append(base_url + link["href"].strip())
                     # Calling the user choice function.
-                    data = Musicsources().user_choice(name_list, link_list, index_list)
+                    data = Musicsources().user_choice(name_list, link_list, index_list, label)
                     url = data[0]
                     name = data[1]
                     if name == "Next Page":
@@ -302,7 +313,7 @@ class Musicsources:
                             name_list.append(names.text.strip())
                     for links in html_tag_link:
                         link_list.append(links["href"])
-                    data = Musicsources().user_choice(name_list, link_list, index_list)
+                    data = Musicsources().user_choice(name_list, link_list, index_list, label)
                     url = data[0]
                     name = data[1] 
                     if name == "Next Page":
@@ -315,13 +326,13 @@ class Musicsources:
                 Musicsources().download(name, url)
                 Musicsources().retry(source, search_term)
             except SessionNotCreatedException:
-                print("If you are not using android then install from win_linux_requirement.txt file")
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
-                print("Network Error!")
-            except TypeError:
-                pass
-            except IndexError:
-                print("Did not find anything.")
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(")
             except KeyboardInterrupt:
                 print("\n\nCancelled by user.")
 ############################################################################
