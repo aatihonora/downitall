@@ -4,3 +4,7 @@ selenium
 cbz-generator
 tqdm
 gdown
+term-image
+questionary
+yt-dlp
+xdcc-dl
