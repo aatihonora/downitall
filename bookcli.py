@@ -122,12 +122,12 @@ logo = """
 
 Welcome, here is a short guide about websites
 
-(+) = Website uses Selenium, (*) = Website uses Torrent, (-) = Website does not have download capablities
+(*) = Website uses Torrent, (-) = Website does not have download capablities
 
 Anime: TokyoInsider, Nyaa(*), Kayoanime
 Books: Libgen, Annas Archive(-), 1337x(*)
-Manga: Bato, Mangasee(+), ComicExtra
-Music: Light Audio, Bomb Music, PlayerFM(+)
+Manga: Bato, Mangasee, ComicExtra
+Music: Light Audio, Bomb Music, PlayerFM
 TV-Series/Movies: Vadapav, 1337x(*), Documentaries
 """
 subprocess.call(["clear"])
