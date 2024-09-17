@@ -69,13 +69,13 @@ python bookcli.py
 ## Books
 
 1. Libgen [Books]
-2. Anna's Archive [Books] [Selenium]
+2. Anna's Archive [Books]
 3. 1337x [Books] [Courses] [Torrent]
 
 ## Manga
 
 1. Bato.to [Manhwa/Manhua]
-2. Mangasee [Manga] [Selenium]
+2. Mangasee [Manga]
 3. ComicExtra [Comic]
 
 ## Anime
