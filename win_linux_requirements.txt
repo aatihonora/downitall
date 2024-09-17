@@ -8,3 +8,4 @@ term-image
 questionary
 yt-dlp
 xdcc-dl
+pandas

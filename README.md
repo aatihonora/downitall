@@ -18,7 +18,7 @@ Step 2: Copy and paste
 pkg update
 termux-setup-storage
 pkg install -y python git openssl x11-repo tur-repo aria2 wget
-pkg install -y chromium
+pkg install -y chromium python-pandas
 git clone https://github.com/aatihonora/bookcli/
 cd bookcli
 pip install -r android_requirements.txt
