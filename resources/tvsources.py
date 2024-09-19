@@ -129,7 +129,7 @@ class Tvsources:
                 Tvsources().Documentary().documentary()
 ############################################################################
     class Vadapav:
-        def vadapav(self,search_term):
+        def vadapav_search(self,search_term):
             source = "vadapav"
             label = "no_page"
             choice = 0
@@ -165,6 +165,89 @@ class Tvsources:
                 subprocess.call(args)
                 print("\nDownload Complete.")
                 Tvsources().retry(source, search_term, choice)
+            except SessionNotCreatedException:
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
+            except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(")
+            except KeyboardInterrupt:
+                print("\n\nCancelled by user.")
+
+        def vadapav_batch(self,search_term):
+            source = "vadapav"
+            label = "no_page"
+            save = 0
+            # Url to access the searching.
+            url = "https://vadapav.mov/s/" + search_term
+            # Url to access the base website.
+            base_url = "https://vadapav.mov"
+            try:
+                while True:
+                    # Sending request to the webpage.
+                    driver.get(url)
+                    # Getting html page with BeautifulSoup module
+                    soup = BeautifulSoup(driver.page_source, "html.parser")
+                    # Finding all the mentioned elements from webpage.
+                    html_tag = soup.find_all("a", {"class": "directory-entry wrap"})
+                    index_list = []
+                    name_list = []
+                    link_list = []
+                    for i, links in enumerate(html_tag, start=1):
+                        index_list.append(i)
+                        name_list.append(links.text.strip())
+                        link_list.append(base_url + links["href"]) 
+                    if save == 1:
+                        name_list.pop(0)
+                        link_list.pop(0)
+                    for i, name in zip(index_list, name_list):
+                        print(f"{i}. {name}")
+                    if not link_list:
+                        break
+                    data = Tvsources().user_choice(name_list, link_list, index_list, label)
+                    url = data[0]
+                    name = data[1]
+                    if save == 0:
+                        tv_name = name
+                    save += 1
+                # Sending request to the webpage.
+                driver.get(url)
+                # Getting html page with BeautifulSoup module
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                # Finding all the mentioned elements from webpage.
+                html_tag = soup.find_all("a", {"class": "file-entry wrap"})
+                link_list = []
+                name_list = []
+                for links in html_tag:
+                    link_list.append(base_url + links["href"]) 
+                    name_list.append(links.text.strip())
+                total_links = len(link_list)
+                if not os.path.isdir(tv_name):
+                    os.mkdir(tv_name)
+                    os.chdir(tv_name)
+                else:
+                    os.chdir(tv_name)
+                if os.path.isfile(f".{tv_name}.txt"):
+                    file = open(f".{tv_name}.txt", "r+")
+                    data = file.read()
+                    start = len(data)
+                else:
+                    open(f".{tv_name}.txt", "x")
+                    file = open(f".{tv_name}.txt", "r+") 
+                    start = 0
+                for ep_name in name_list[start:]:
+                    for url in link_list[start:]:
+                        args = ['wget', '-O', ep_name, url]
+                        subprocess.call(args)
+                        link_list.pop(0)
+                        new_total_links = len(link_list)                        
+                        file.write(str(total_links - new_total_links))
+                        data = file.read()
+                        start = len(data)
+                        break
+                print("\nDownload Complete.")
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
