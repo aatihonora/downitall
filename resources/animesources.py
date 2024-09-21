@@ -20,6 +20,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from xdcc_dl.entities import IrcServer, XDCCPack
+from xdcc_dl.xdcc import download_packs
 
 # Global variables.
 # Selenium Chrome options to lessen the memory usage.
@@ -41,11 +43,18 @@ options.add_argument("--log-level=3")
 options.add_argument("--silent")
 options.page_load_strategy = 'eager'
 driver = webdriver.Chrome(options=options)
-# Getting the current directory.
 bookcli = os.getcwd()
+# Getting the current directory.
 
 class Animesources:
     '''Anime functions'''
+############################################################################
+    def directory(self):
+        if not os.path.isdir("Anime"):
+            os.mkdir("Anime")
+            os.chdir("Anime")
+        else:
+            os.chdir("Anime")
 ############################################################################
     # Defining the function for moving through pages, it takes name, pages(total pages) and, index(starting of pages).
     def page_navigation(self, name, pages, index):
@@ -84,7 +93,7 @@ class Animesources:
             for cell in row.find_all('td'):
                 cell_info = cell.text.strip()
                 clean_cell = re.sub("\s+", " ", cell_info)
-                row_data.append(clean_cell[:30])
+                row_data.append(clean_cell[:90])
             data.append(row_data)
         # Creating a pandas dataframe
         df = pd.DataFrame(data)
@@ -123,6 +132,42 @@ class Animesources:
         except ValueError:
             print("\nInvalid integer. The number must be in the range.")
 ############################################################################
+    # Defining the function for player to choose the index.
+    def xdcc_choice(self, name_list, link_list, index_list, label):
+        # Appendind data for next and previous page.
+        # Creating two dictionary that take key as index and value as items from "link_list" and "name_list" respectively.
+        url_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
+        name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
+        try:
+            # If statement in case no manga/chapter was found.
+            if label == "no_page" and not link_list:
+                print("\nCould not find any thing :(")
+                sys.exit()
+            elif label == "paged" and len(link_list) == 2:
+                print("\nCould not find any thing :(")
+                sys.exit()
+            elif label == "next_only" and len(link_list) == 1:
+                print("\nCould not find any thing :(")
+                sys.exit()
+            else:
+                while True:
+                    # Matching the user selection with "urls_dict" dictionary to get its value.
+                    start = int(input("\n\nSelect the starting index number: "))
+                    end = int(input("\n\nSelect the ending index number: "))
+                    if start in url_dict and end in url_dict:
+                        # Getting the name and link by matching the index number from dictionaries.
+                        start_link = f"{url_dict[start]}"
+                        end_link = f"{url_dict[end]}"
+                        start_index = start
+                        end_index = end
+                        print("\nFetching, please wait...")
+                        subprocess.call(["clear"])
+                        return [start_link, end_link, start_index, end_index]
+                    else:
+                        raise ValueError
+        except ValueError:
+            print("\nInvalid integer. The number must be in the range.")
+############################################################################
     def download(self, name, url):
         # Making the folder and opening it
         anime = re.sub('[^a-z,0-9]', '_', name, flags=re.IGNORECASE)
@@ -138,23 +183,69 @@ class Animesources:
         subprocess.call(args)
         print("\nDownload Complete.")
 ############################################################################
-    # Defining the function for retrying the user_choice function.
-    def retry(self, source, search_term, choice):
-        # Using match case argument to see which class called the function.
-        answer = questionary.select("Do you want to download another file? ", choices=["Yes", "No"]).ask()
-        if answer == "Yes":
-            if source == "kayoanime":
-                Animesources().Kayoanime().kayoanime_search(search_term)
-            if source == "tokyoinsider":
-                Animesources().Tokyoinsider().tokyoinsider_search(search_term, choice)
-            else:
+    def retry(self):
+        answer = questionary.select("Do you want to download anything else?", choices=["Yes", "No"]).ask()
+        if answer == "Yes": 
+            # Second question to choose the Website.
+            search_term = input("Enter the title of the Anime: ")
+            select = questionary.select("Select item", choices=["TokyoInsider", "Nyaa", "Kayoanime", "Nibl", "Animk", "Exit"]).ask()
+            if select == "TokyoInsider":
+                # Third question to choose how to download
+                download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+                if download_select == "Single Download":
+                    # Fourth question to choose filter.
+                    sub_select = questionary.select("Select item", choices=["Completed", "Still Airing", "Exit"]).ask()
+                    if sub_select == "Completed":
+                        choice = 1
+                        Animesources().Tokyoinsider().tokyoinsider_search(search_term, choice)
+                    elif sub_select == "Still Airing": 
+                        choice = 2
+                        Animesources().Tokyoinsider().tokyoinsider_search(search_term, choice)
+                    else:
+                        pass
+                elif download_select == "Batch Download":
+                    # Fourth question to choose filter.
+                    sub_select = questionary.select("Select item", choices=["Completed", "Still Airing", "Exit"]).ask()
+                    if sub_select == "Completed":
+                        choice = 1
+                        Animesources().Tokyoinsider().tokyoinsider_batch(search_term, choice)
+                    elif sub_select == "Still Airing":
+                        choice = 2
+                        Animesources().Tokyoinsider().tokyoinsider_batch(search_term, choice)
+                    else:
+                        pass
+                else:
+                    pass
+            elif select == "Nyaa":
                 Animesources().Nyaa().nyaa_search(search_term)
+            elif select == "Kayoanime":
+                Animesources().Kayoanime().kayoanime_search(search_term)
+            elif select == "Nibl":
+                download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+                if download_select == "Single Download":
+                    Animesources().Nibl().nibl_search(search_term)
+                elif download_select == "Batch Download":
+                    Animesources().Nibl().nibl_batch(search_term)
+                else:
+                    pass
+            elif select == "Animk":
+                download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+                if download_select == "Single Download":
+                    Animesources().Animk().animk_search(search_term)
+                elif download_select == "Batch Download":
+                    Animesources().Animk().animk_batch(search_term)
+                else:
+                    pass
+            else:
+                pass
+        else:
+            pass
+############################################################################
 ############################################################################
     class Kayoanime:
         def kayoanime_search(self,search_term):
-            source = "kayoanime"
+            Animesources().directory()
             label = "next_only"
-            choice = 0
             web_url = f"https://kayoanime.com/?s={search_term}"
             try:
                 # Sending request to the webpage.
@@ -204,7 +295,7 @@ class Animesources:
                 # Downloading google folders using gdown libraries. 
                 gdown.download_folder(url)
                 # Calling retry function to start this entire method again.
-                Animesources().retry(source, search_term, choice)
+                Animesources().retry()
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
@@ -221,7 +312,7 @@ class Animesources:
     class Tokyoinsider:
         def tokyoinsider_search(self, search_term, choice):
             # Declaring function level variables.
-            source = "tokyoinsider"
+            Animesources().directory()
             label = "paged"
             index = 1
             # Making search term better for url through regex.
@@ -340,7 +431,7 @@ class Animesources:
                         data = Animesources().user_choice(name_list, link_list, index_list, label)
                         url = data[0]
                         Animesources().download(name, url)
-                        Animesources().retry(source, search_term, choice)
+                        Animesources().retry()
                         break
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
@@ -352,10 +443,10 @@ class Animesources:
                 print("\nCould not find any thing :(") 
             except KeyboardInterrupt:
                 print("\n\nCancelled by user.")
-
+############################################################################
         def tokyoinsider_batch(self, search_term, choice):
             # Declaring function level variables.
-            source = "tokyoinsider"
+            Animesources().directory()
             label = "paged"
             index = 1
             # Making search term better for url through regex.
@@ -419,26 +510,40 @@ class Animesources:
                     else:
                         web_url = url + str((index-1)*20)
                     if name != "Next Page" and name != "Previous Page":
-                        # Sending get request to the "manga_link" website.
                         label = "no_page"
                         driver.get(url)
                         # Parsering the response with "BeauitifulSoup".
                         soup = BeautifulSoup(driver.page_source, "html.parser")
-                        # Finding all the "a" elements in the webpage.
+                        # Finding all the mentioned elements in the webpage.
                         html_tag = soup.find_all(
-                                "a", class_="download-link", href=lambda t: t and "episode" in t
+                                "a", class_="download-link"
                         )
+                        # Making lists and appending to them the data.
+                        index_list = []
+                        name_list = []
                         link_list = []
-                        for links in html_tag:
+                        for i, links in enumerate(html_tag, start=1):
+                            index_list.append(i)
+                            name_list.append(links.text.strip())
                             link_list.append(base_url + links["href"])
+                    # Reversing the name and link list to have better organized data.
+                        name_list.reverse()
                         link_list.reverse()
+                    # Printing the index and name for user to choose from.
+                        print("\n")
+                        for i, names in zip(index_list, name_list):
+                            print(f"{i}. {names}")
+                        # Calling the user choice function.
+                        data = Animesources().xdcc_choice(name_list, link_list, index_list, label)
+                        start = int(data[2]) - 1
+                        end = int(data[3])
                         anime = re.sub('[^a-z,0-9]', '_', name, flags=re.IGNORECASE)
                         if not os.path.isdir(anime):
                             os.mkdir(anime)
                             os.chdir(anime)
                         else:
                             os.chdir(anime)
-                        for url in link_list:
+                        for url in link_list[start:end]:
                             driver.get(url)
                             soup = BeautifulSoup(
                                 driver.page_source, "html.parser"
@@ -450,6 +555,7 @@ class Animesources:
                             args = ['wget', url]
                             subprocess.call(args)
                             print("\nDownload Complete.")
+                        Animesources().retry()
                         break
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
@@ -462,11 +568,11 @@ class Animesources:
             except KeyboardInterrupt:
                 print("\n\nCancelled by user.")
 ############################################################################
+############################################################################
     class Nyaa:
         def nyaa_search(self, search_term):
-            source = "nyaa"
+            Animesources().directory()
             label = "paged"
-            choice = 0
             index = 1
             term = re.sub("\W", "+", search_term)
             # Url to access the searching.
@@ -525,7 +631,191 @@ class Animesources:
                 url = html_tag["href"]
                 args = ["aria2c", "--file-allocation=none", "--seed-time=0", "-d", dir, url]
                 subprocess.call(args)
-                Animesources().retry(source, search_term, choice)
+                Animesources().retry()
+            except SessionNotCreatedException:
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
+            except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(") 
+            except KeyboardInterrupt:
+                print("\n\nCancelled by user.")
+############################################################################
+############################################################################
+    class Nibl:
+        def nibl_search(self, search_term):
+            Animesources().directory()
+            label = "no_page"
+            term = re.sub("\W", "+", search_term)
+            # Url to access the searching.
+            web_url = f"https://nibl.co.uk/search?query={term}"
+            # Url to access the base website
+            try:
+                # Sending request to the webpage.
+                driver.get(web_url)
+                # Getting html page with BeautifulSoup module
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                # Finding all the mentioned elements from webpage.
+                table = soup.find("table", class_="border-collapse table-auto w-full whitespace-no-wrap bg-white table-striped relative shadow dark:bg-gray-800")
+                df = Animesources().visual_tables(table)
+                df_table = df.iloc[:, [0, 3, 2]]
+                df_table.index += 1
+                index_list = df_table.index.tolist()
+                name_list = df[df.columns[3]].values.tolist()
+                link_list = []
+                html_tag = soup.find_all("button", class_="copy-data py-1 px-2 bg-gray-300 hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800")
+                for links in html_tag:
+                    link_list.append(links["data-botname"] + " " + links["data-botpack"])
+                print(df_table)
+                data = Animesources().user_choice(name_list, link_list, index_list, label)
+                bot = data[0].split(" ")[0]
+                pack = int(data[0].split(" ")[1])
+                manual = XDCCPack(IrcServer("irc.rizon.net"), f"{bot}", pack)
+                # Start download
+                download_packs([manual])
+                Animesources().retry()
+            except SessionNotCreatedException:
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
+            except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(") 
+            except KeyboardInterrupt:
+                print("\n\nCancelled by user.")
+############################################################################
+        def nibl_batch(self, search_term):
+            Animesources().directory()
+            label = "no_page"
+            term = re.sub("\W", "+", search_term)
+            # Url to access the searching.
+            web_url = f"https://nibl.co.uk/search?query={term}"
+            # Url to access the base website
+            try:
+                # Sending request to the webpage.
+                driver.get(web_url)
+                # Getting html page with BeautifulSoup module
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                # Finding all the mentioned elements from webpage.
+                table = soup.find("table", class_="border-collapse table-auto w-full whitespace-no-wrap bg-white table-striped relative shadow dark:bg-gray-800")
+                df = Animesources().visual_tables(table)
+                df_table = df.iloc[:, [0, 3, 2]]
+                df_table.index += 1
+                index_list = df_table.index.tolist()
+                name_list = df[df.columns[3]].values.tolist()
+                link_list = []
+                html_tag = soup.find_all("button", class_="copy-data py-1 px-2 bg-gray-300 hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800")
+                for links in html_tag:
+                    link_list.append(links["data-botname"] + " " + links["data-botpack"])
+                print(df_table)
+                data = Animesources().xdcc_choice(name_list, link_list, index_list, label)
+                start_bot = data[0].split(" ")[0]
+                end_bot = data[1].split(" ")[0]
+                start_pack = int(data[0].split(" ")[1]) 
+                end_pack = int(data[1].split(" ")[1])
+                while True:
+                    if start_bot == end_bot:
+                        manual = XDCCPack(IrcServer("irc.rizon.net"), f"{start_bot}", start_pack)
+                        from_message = XDCCPack.from_xdcc_message(f"/msg {start_bot} xdcc send #{start_pack + 1}-{end_pack}", os.getcwd())
+                        combined = [manual] + from_message
+                        # Start download
+                        download_packs(combined)
+                        Animesources().retry()
+                    else:
+                        print("Make sure to choose from single bot")
+            except SessionNotCreatedException:
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
+            except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(") 
+            except KeyboardInterrupt:
+                print("\n\nCancelled by user.")
+############################################################################
+############################################################################
+    class Animk:
+        def animk_search(self, search_term):
+            Animesources().directory()
+            label = "no_page"
+            # Url to access the searching.
+            web_url = f"https://xdcc.animk.info/?search={search_term}"
+            # Url to access the base website
+            try:
+                # Sending request to the webpage.
+                driver.get(web_url)
+                time.sleep(4)
+                # Getting html page with BeautifulSoup module
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                # Finding all the mentioned elements from webpage.
+                table = soup.find("table", id="listtable")
+                df = Animesources().visual_tables(table)
+                df_table = df.iloc[:, [0, 3, 2]]
+                df_table.index += 1
+                index_list = df_table.index.tolist()
+                name_list = df[df.columns[3]].values.tolist()
+                df["combined_column"] = df[df.columns[0]] + " " + df[df.columns[1]].astype(str)
+                link_list = df["combined_column"].values.tolist()
+                print(df_table)
+                data = Animesources().user_choice(name_list, link_list, index_list, label)
+                bot = data[0].split(" ")[0]
+                pack = int(data[0].split(" ")[1])
+                manual = XDCCPack(IrcServer("irc.rizon.net"), f"{bot}", pack)
+                # Start download
+                download_packs([manual])
+                Animesources().retry()
+            except SessionNotCreatedException:
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
+            except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(") 
+            except KeyboardInterrupt:
+                print("\n\nCancelled by user.")
+############################################################################
+        def animk_batch(self, search_term):
+            Animesources().directory()
+            label = "no_page"
+            # Url to access the searching.
+            web_url = f"https://xdcc.animk.info/?search={search_term}"
+            # Url to access the base website
+            try:
+                # Sending request to the webpage.
+                driver.get(web_url)
+                time.sleep(6)
+                # Getting html page with BeautifulSoup module
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                # Finding all the mentioned elements from webpage.
+                table = soup.find("table", id="listtable")
+                df = Animesources().visual_tables(table)
+                df_table = df.iloc[:, [0, 3, 2]]
+                df_table.index += 1
+                index_list = df_table.index.tolist()
+                name_list = df[df.columns[3]].values.tolist()
+                df["combined_column"] = df[df.columns[0]] + " " + df[df.columns[1]].astype(str)
+                link_list = df["combined_column"].values.tolist()
+                print(df_table)
+                data = Animesources().xdcc_choice(name_list, link_list, index_list, label)
+                start_bot = data[0].split(" ")[0]
+                end_bot = data[1].split(" ")[0]
+                start_pack = int(data[0].split(" ")[1]) 
+                end_pack = int(data[1].split(" ")[1])
+                while True:
+                    if start_bot == end_bot:
+                        manual = XDCCPack(IrcServer("irc.rizon.net"), f"{start_bot}", start_pack)
+                        from_message = XDCCPack.from_xdcc_message(f"/msg {start_bot} xdcc send #{start_pack + 1}-{end_pack}", os.getcwd())
+                        combined = [manual] + from_message
+                        # Start download
+                        download_packs(combined)
+                        Animesources().retry()
+                    else:
+                        print("Make sure to choose from single bot")
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):

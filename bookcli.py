@@ -12,47 +12,73 @@ from resources import (Animesources, Booksources, Mangasources, Musicsources,
 # Global variables.
 books = Booksources()
 manga = Mangasources()
-anime = Animesources()
 tv = Tvsources()
 music = Musicsources()
 # Space for functions start from here
 
 # Defining the core function of UI
+def anime():
+    # Second question to choose the Website.
+    search_term = input("Enter the title of the Anime: ")
+    select = questionary.select("Select item", choices=["TokyoInsider", "Nyaa", "Kayoanime", "Nibl", "Animk", "Reset", "Exit"]).ask()
+    if select == "TokyoInsider":
+        # Third question to choose how to download
+        download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+        if download_select == "Single Download":
+            # Fourth question to choose filter.
+            sub_select = questionary.select("Select item", choices=["Completed", "Still Airing", "Exit"]).ask()
+            if sub_select == "Completed":
+                choice = 1
+                Animesources().Tokyoinsider().tokyoinsider_search(search_term, choice)
+            elif sub_select == "Still Airing": 
+                choice = 2
+                Animesources().Tokyoinsider().tokyoinsider_search(search_term, choice)
+            else:
+                pass
+        elif download_select == "Batch Download":
+            # Fourth question to choose filter.
+            sub_select = questionary.select("Select item", choices=["Completed", "Still Airing", "Exit"]).ask()
+            if sub_select == "Completed":
+                choice = 1
+                Animesources().Tokyoinsider().tokyoinsider_batch(search_term, choice)
+            elif sub_select == "Still Airing":
+                choice = 2
+                Animesources().Tokyoinsider().tokyoinsider_batch(search_term, choice)
+            else:
+                pass
+        else:
+            pass
+    elif select == "Nyaa":
+        Animesources().Nyaa().nyaa_search(search_term)
+    elif select == "Kayoanime":
+        Animesources().Kayoanime().kayoanime_search(search_term)
+    elif select == "Nibl":
+        download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+        if download_select == "Single Download":
+            Animesources().Nibl().nibl_search(search_term)
+        elif download_select == "Batch Download":
+            Animesources().Nibl().nibl_batch(search_term)
+        else:
+            pass
+    elif select == "Animk":
+        download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+        if download_select == "Single Download":
+            Animesources().Animk().animk_search(search_term)
+        elif download_select == "Batch Download":
+            Animesources().Animk().animk_batch(search_term)
+        else:
+            pass
+    elif select == "Reset":
+        questions()
+    else:
+        pass
+############################################################################
 def questions():
     """Function to start the core app."""
     # First question to choose the medium.
     type = questionary.select("Select item", choices=["Anime", "Book", "Manga", "Music", "TV/Movie", "Exit"]).ask()
     if type == "Anime":
-        # Second question to choose the Website.
-        search_term = input("Enter the title of the Anime: ")
-        select = questionary.select("Select item", choices=["TokyoInsider", "Nyaa", "Kayoanime", "Reset"]).ask()
-        if select == "TokyoInsider":
-            # Third question to choose how to download
-            download_select = questionary.select("Select item", choices=["Batch Download", "Single Download"]).ask()
-            if download_select == "Batch Download":
-                # Fourth question to choose filter.
-                sub_select = questionary.select("Select item", choices=["Completed", "Still Airing"]).ask()
-                if sub_select == "Completed":
-                    choice = 1
-                    anime.Tokyoinsider().tokyoinsider_batch(search_term, choice)
-                else: 
-                    choice = 2
-                    anime.Tokyoinsider().tokyoinsider_batch(search_term, choice)
-            else:
-                # Fourth question to choose filter.
-                sub_select = questionary.select("Select item", choices=["Completed", "Still Airing"]).ask()
-                if sub_select == "Completed":
-                    choice = 1
-                    anime.Tokyoinsider().tokyoinsider_search(search_term, choice)
-                else:
-                    choice = 2
-                    anime.Tokyoinsider().tokyoinsider_search(search_term, choice)
-        elif select == "Nyaa":
-            anime.Nyaa().nyaa_search(search_term)
-        elif select == "Kayoanime":
-            anime.Kayoanime().kayoanime_search(search_term)
-        else:
-            questions()
+        anime()
     elif type == "Book":
         # Second question to choose the Website.
         search_term = input("Enter the title or the author of the Book: ")
