@@ -49,6 +49,14 @@ driver = webdriver.Chrome(options=options)
 ############################################################################
 class Mangasources:
     '''Manga functions'''
+############################################################################
+    def directory(self):
+        if not os.path.isdir("Manga"):
+            os.mkdir("Manga")
+            os.chdir("Manga")
+        else:
+            os.chdir("Manga")
+############################################################################
     # Defining the function for moving through pages, it takes name, pages(total pages) and, index(starting of pages).
     def page_navigation(self, name, pages, index):
         # If statement to confirm what user choose, next or previous page.
@@ -140,7 +148,7 @@ class Mangasources:
             subprocess.call(["clear"])
             return False
 ############################################################################
-    def directory(self, manga_name, chapter_name):
+    def download_directory(self, manga_name, chapter_name):
         manga = re.sub('[^a-z,0-9]', '_', manga_name, flags=re.IGNORECASE)
         chapter = re.sub('[^a-z,0-9]', '_', chapter_name, flags=re.IGNORECASE)
         if not os.path.isdir(manga):
@@ -169,7 +177,7 @@ class Mangasources:
     def download_compress(self, manga_name, chapter_name, img_links_list):
         # Using regex to get the standard naming protocols for easy folder making.
         try:
-            data = Mangasources().directory(manga_name, chapter_name)
+            data = Mangasources().download_directory(manga_name, chapter_name)
             path = data[0]
             manga = data[1]
             chapter = data[2]
@@ -255,20 +263,51 @@ class Mangasources:
         print("\nDownload Complete.")
 ############################################################################
     # Defining the function for retrying the user_choice function.
-    def retry(self, source, search_term):
+    def retry(self):
         # Using match case argument to see which class called the function.
         answer = questionary.select("Do you want to download another file? ", choices=["Yes", "No"]).ask()
         if answer == "Yes":
-            if source == "bato":
-                Mangasources().Bato().bato_search(search_term)
-            elif source == "mangasee":
-                Mangasources().Mangasee().mangasee_search(search_term)
+            # Second question to choose the Website.
+            search_term = input("Enter the title of the Manga: ")
+            select = questionary.select("Select item", choices=["Bato", "Mangasee", "Nyaa", "ComicExtra", "Getcomics", "Exit"]).ask()
+            if select == "Bato":
+                 # Third question to choose how to download
+                download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+                if download_select == "Single Download":
+                    Mangasources().Bato().bato_batch(search_term)
+                elif select == "Batch Download":
+                    Mangasources().Bato().bato_search(search_term)
+                else:
+                    pass
+            elif select == "Mangasee":
+                # Third question to choose how to download
+                download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+                if download_select == "Single Download":
+                    Mangasources().Mangasee().mangasee_batch(search_term)
+                elif select == "Batch Download":
+                    Mangasources().Mangasee().mangasee_search(search_term)
+                else:
+                    pass
+            elif select == "Nyaa":
+                Mangasources().Nyaa().nyaa_search(search_term)
+            elif select == "ComicExtra":
+                # Third question to choose how to download
+                download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+                if download_select == "Single Download":
+                    Mangasources().Comicextra().comicextra_batch(search_term)
+                elif select == "Batch Download":
+                    Mangasources().Comicextra().comicextra_search(search_term)
+                else:
+                    pass
+            elif select == "Comick":
+                Mangasources().Getcomics().getcomics(search_term)
             else:
-                Mangasources().Comicextra().comicextra_search(search_term)
+                pass
 ############################################################################
 ############################################################################
     class Bato:
         def bato_search(self,search_term):
+            Mangasources().directory()
             # Declaring function level variables.
             source = "bato"
             label = "paged"
@@ -372,7 +411,7 @@ class Mangasources:
                     img_links_list.append(imgs["src"])
                 # Calling download_compress method as function.
                 Mangasources().download_compress(name, chapter_name, img_links_list)
-                Mangasources().retry(source, search_term)
+                Mangasources().retry()
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
@@ -385,6 +424,7 @@ class Mangasources:
                 print("\n\nCancelled by user.")
 ############################################################################
         def bato_batch(self,search_term):
+            Mangasources().directory()
             # Declaring function level variables.
             source = "bato"
             label = "paged"
@@ -466,6 +506,7 @@ class Mangasources:
                 link_list.reverse()
                 name_list.reverse()
                 Mangasources().batch_download(name_list, link_list, name)
+                Mangasources().retry()
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
@@ -480,6 +521,7 @@ class Mangasources:
 ############################################################################
     class Mangasee:
         def mangasee_search(self, search_term):
+            Mangasources().directory()
             # Declaring function level variables.
             source = "mangasee"
             label = "next_only"
@@ -568,7 +610,7 @@ class Mangasources:
                     img_links_list.append(imgs["src"])
                 # Calling download_compress method as function.
                 Mangasources().download_compress(name, chapter_name, img_links_list)
-                Mangasources().retry(source, search_term)
+                Mangasources().retry()
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
@@ -581,6 +623,7 @@ class Mangasources:
                 print("\n\nCancelled by user.")
 ############################################################################
         def mangasee_batch(self, search_term):
+            Mangasources().directory()
             # Declaring function level variables.
             source = "mangasee"
             label = "next_only"
@@ -647,6 +690,7 @@ class Mangasources:
                 name_list.reverse()
                 link_list.reverse()
                 Mangasources().batch_download(name_list, link_list, name)
+                Mangasources().retry()
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
@@ -659,10 +703,85 @@ class Mangasources:
                 print("\n\nCancelled by user.")
 ############################################################################
 ############################################################################
+    class Nyaa:
+        def nyaa_search(self, search_term):
+            Mangasources().directory()
+            label = "paged"
+            index = 1
+            term = re.sub("\W", "+", search_term)
+            # Url to access the searching.
+            web_url = f"https://nyaa.si/?q={term}&f=0&c=3_1&s=seeders&o=desc"
+            page_url = f"https://nyaa.si/?q={term}&f=0&c=3_1&s=seeders&o=desc&p="
+            # Url to access the base website
+            base_url = "https://nyaa.si"
+            try:
+                while True:
+                    # Sending request to the webpage.
+                    driver.get(web_url)
+                    # Getting html page with BeautifulSoup module
+                    soup = BeautifulSoup(driver.page_source, "html.parser")
+                    if Mangasources().exists(element = ".pagination"):
+                        html_tag = soup.find("ul", class_="pagination")
+                        pages = int(html_tag.find_all("li", class_=None)[-1].getText().strip())
+                    else:
+                        pages = 1
+                    # Finding all the mentioned elements from webpage.
+                    table = soup.find("table", class_="table table-bordered table-hover table-striped torrent-list")
+                    df = Mangasources().visual_tables(table)
+                    df_table = df.iloc[:, [1, 3]]
+                    df_table.index += 1
+                    index_list = df_table.index.tolist()
+                    name_list = df[df.columns[1]].values.tolist()
+                    link_list = []
+                    td_tag = soup.find_all("td", colspan="2")
+                    for a_html in td_tag:
+                        for links in a_html.find_all("a", title=True, class_=None, href=True):
+                            link_list.append(base_url + links["href"])
+                    index_list.append(0)
+                    name_list.append("Next Page")
+                    link_list.append(page_url)
+                    index_list.append(len(df_table.index.tolist())+1)
+                    name_list.append("Previous Page")
+                    link_list.append(page_url)
+                    print("\n0. Next Page")
+                    print(df_table)
+                    print(f"{len(df_table.index.tolist())+1}. Previous Page")
+                    data = Mangasources().user_choice(name_list, link_list, index_list, label)
+                    url = data[0]
+                    name = data[1]
+                    index = Mangasources().page_navigation(name, pages, index)
+                    web_url = url + str(index)
+                    if name != "Next Page" and name != "Previous Page":
+                        break
+                driver.get(url)
+                # Parsering the response with "BeauitifulSoup".
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                # Finding all the "a" elements in the webpage.
+                html_tag = soup.find(
+                        "a", class_="card-footer-item"
+                )
+                driver.quit()
+                dir = os.getcwd()
+                url = html_tag["href"]
+                args = ["aria2c", "--file-allocation=none", "--seed-time=0", "-d", dir, url]
+                subprocess.call(args)
+                Mangasources().retry()
+            except SessionNotCreatedException:
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
+            except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(") 
+            except KeyboardInterrupt:
+                print("\n\nCancelled by user.")
+############################################################################
+############################################################################
     class Comicextra:
         def comicextra_search(self, search_term):
+            Mangasources().directory()
             # Declaring function level variables.
-            source = "comicextra"
             label = "paged"
             index = 1
             # Making search term better for url through regex.
@@ -768,7 +887,7 @@ class Mangasources:
                         img_links_list.append(imgs["src"].strip())
                 # Calling download_compress method as function.
                 Mangasources().download_compress(name, chapter_name, img_links_list)
-                Mangasources().retry(source, search_term)
+                Mangasources().retry()
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
@@ -781,6 +900,7 @@ class Mangasources:
                 print("\n\nCancelled by user.")
 ############################################################################
         def comicextra_batch(self, search_term):
+            Mangasources().directory()
             # Declaring function level variables.
             source = "comicextra"
             label = "paged"
@@ -868,6 +988,79 @@ class Mangasources:
                 link_list.reverse()
                 img_tag = None
                 Mangasources().batch_download(name_list, link_list, name)
+                Mangasources().retry()
+            except SessionNotCreatedException:
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
+            except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(")
+            except KeyboardInterrupt:
+                print("\n\nCancelled by user.")
+############################################################################
+############################################################################
+    class Getcomics:
+        def getcomics(self, search_term):
+            Mangasources().directory()
+            # Declaring function level variables.
+            label = "paged"
+            # Making search term better for url through regex.
+            term = re.sub("\W", "+", search_term)
+            # Url to access webpage. 
+            web_url = f"https://getcomics.org/?s={term}"
+            try:
+                # Sending request to the webpage.
+                while True:
+                    driver.get(web_url)
+                    # Getting html page with BeautifulSoup module
+                    soup = BeautifulSoup(driver.page_source, "html.parser")
+                    # Finding all the mentioned elements from webpage.
+                    html_tag = soup.find_all("div", class_="post-header-image")
+                    index_list = []
+                    name_list = []
+                    link_list = []
+                    img_list = []
+                    # Finding the links and making link list.
+                    index_list.append(0)
+                    name_list.append("Next Page")
+                    link_list.append("")
+                    for i, tag in enumerate(html_tag, start=1):
+                        index_list.append(i)
+                        for names in tag.find_all("img"):
+                            name_list.append(names["alt"])
+                            img_list.append(names["src"])
+                        for links in tag.find_all("a"):
+                            link_list.append(links["href"])
+                    index_list.append(i+1)
+                    name_list.append("Previous Page")
+                    link_list.append("")
+                    # Calling the user choice function.
+                    data = Mangasources().user_choice(name_list, link_list, index_list, label)
+                    url = data[0]
+                    name = data[1]
+                    selection = data[2]
+                    if name != "Next Page" and name != "Previous Page":
+                        answer = Mangasources().confirmation(selection, index_list, img_list)
+                        if answer == True:
+                            break
+                        else:
+                            pass
+                    elif name == "Next Page":
+                        if Mangasources().exists(element = ".pagination-button.pagination-older"):
+                            web_url = soup.find_all("a", class_="pagination-button pagination-older")[0]["href"]
+                    elif name == "Previous Page":
+                        if Mangasources().exists(element = ".pagination-button.pagination-newer"):
+                            web_url = soup.find_all("a", class_="pagination-button pagination-newer")[0]["href"] 
+                # Sending request to the webpage.
+                new_name = re.sub('[^a-z,0-9]', '_', name, flags=re.IGNORECASE)
+                driver.get(url)
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                html_tag = soup.find_all("a", title="Download Now")[0]
+                url = html_tag["href"]
+                subprocess.call(["wget", "-O", new_name, url])
+                Mangasources().retry()
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):

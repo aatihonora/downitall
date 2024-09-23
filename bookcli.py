@@ -10,12 +10,11 @@ from resources import (Animesources, Booksources, Mangasources, Musicsources,
                        Tvsources)
 
 # Global variables.
-books = Booksources()
-manga = Mangasources()
 tv = Tvsources()
 music = Musicsources()
 # Space for functions start from here
 
+############################################################################
 # Defining the core function of UI
 def anime():
     # Second question to choose the Website.
@@ -73,6 +72,92 @@ def anime():
     else:
         pass
 ############################################################################
+def books():
+    # Second question to choose the Website.
+    search_term = input("Enter the title or the author of the Book: ")
+    select = questionary.select("Select item", choices=["Libgen", "Annas Archive", "1337x", "Rutracker", "Golden Audio Books", "Reset", "Exit"]).ask()
+    if select == "Libgen":
+        # Third question to choose filter.
+        sub_select = questionary.select("Select item", choices=["Search by Title", "Search by Author", "Exit"]).ask()
+        if sub_select == "Search by Title":
+            choice = 1
+            Booksources().Libgen().libgen_search(search_term, choice)
+        elif sub_select == "Search by Author":
+            choice = 2
+            Booksources().Libgen().libgen_search(search_term, choice)
+        else:
+            pass
+    elif select == "Annas Archive":
+        # Third question to choose filter.
+        sub_select = questionary.select("Select item", choices=["Search by Title", "Search by Author", "Exit"]).ask()
+        if sub_select == "Search by Title":
+            choice = 1
+            Booksources().Annas_Archive().annas_archive_search(search_term, choice)
+        elif sub_select == "Search by Author":
+            choice = 2
+            Booksources().Annas_Archive().annas_archive_search(search_term, choice)
+        else:
+            pass
+    elif select == "1337x":
+        Booksources().Torrent().torrent_search(search_term)
+    elif select == "Rutracker":
+        # Third question to choose filter.
+        sub_select = questionary.select("Select item", choices=["Computer Courses", "General Courses", "Exit"]).ask()
+        if sub_select == "Computer Courses":
+            choice = 1
+            Booksources().Rutracker().rutracker(choice)
+        elif sub_select == "General Courses":
+            choice = 2
+            Booksources().Rutracker().rutracker(choice)
+        else:
+            pass
+    elif select == "Golden Audio Books":
+        Booksources().Goldenaudiobooks().goldenaudiobooks(search_term)
+    elif select == "Reset":
+        questions()
+    else:
+        pass
+############################################################################
+def manga():
+    # Second question to choose the Website.
+    search_term = input("Enter the title of the Manga: ")
+    select = questionary.select("Select item", choices=["Bato", "Mangasee", "Nyaa", "ComicExtra", "Getcomics", "Reset", "Exit"]).ask()
+    if select == "Bato":
+         # Third question to choose how to download
+        download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+        if download_select == "Single Download":
+            Mangasources().Bato().bato_batch(search_term)
+        elif select == "Batch Download":
+            Mangasources().Bato().bato_search(search_term)
+        else:
+            pass
+    elif select == "Mangasee":
+        # Third question to choose how to download
+        download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+        if download_select == "Single Download":
+            Mangasources().Mangasee().mangasee_batch(search_term)
+        elif select == "Batch Download":
+            Mangasources().Mangasee().mangasee_search(search_term)
+        else:
+            pass
+    elif select == "Nyaa":
+        Mangasources().Nyaa().nyaa_search(search_term)
+    elif select == "ComicExtra":
+        # Third question to choose how to download
+        download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+        if download_select == "Single Download":
+            Mangasources().Comicextra().comicextra_batch(search_term)
+        elif select == "Batch Download":
+            Mangasources().Comicextra().comicextra_search(search_term)
+        else:
+            pass
+    elif select == "Comick":
+        Mangasources().Getcomics().getcomics(search_term)
+    elif select == "Reset":
+        questions()
+    else:
+        pass
+############################################################################
 def questions():
     """Function to start the core app."""
     # First question to choose the medium.
@@ -80,58 +165,9 @@ def questions():
     if type == "Anime":
         anime()
     elif type == "Book":
-        # Second question to choose the Website.
-        search_term = input("Enter the title or the author of the Book: ")
-        select = questionary.select("Select item", choices=["Libgen", "Annas Archive", "1337x", "Reset"]).ask()
-        if select == "Libgen":
-            # Third question to choose filter.
-            sub_select = questionary.select("Select item", choices=["Search by Title", "Search by Author"]).ask()
-            if sub_select == "Search by Title":
-                choice = 1
-                books.Libgen().libgen_search(search_term, choice)
-            else:
-                choice = 2
-                books.Libgen().libgen_search(search_term, choice)
-        elif select == "Annas Archive":
-            # Third question to choose filter.
-            sub_select = questionary.select("Select item", choices=["Search by Title", "Search by Author"]).ask()
-            if sub_select == "Search by Title":
-                choice = 1
-                books.Annas_Archive().annas_archive_search(search_term, choice)
-            else:
-                choice = 2
-                books.Annas_Archive().annas_archive_search(search_term, choice)
-        elif select == "1337x":
-            books.Torrent().torrent_search(search_term)
-        else:
-            questions()
+        books()
     elif type == "Manga":
-        # Second question to choose the Website.
-        search_term = input("Enter the title of the Manga: ")
-        select = questionary.select("Select item", choices=["Bato", "Mangasee", "ComicExtra", "Reset"]).ask()
-        if select == "Bato":
-            # Third question to choose how to download
-            download_select = questionary.select("Select item", choices=["Batch Download", "Single Download"]).ask()
-            if download_select == "Batch Download":
-                manga.Bato().bato_batch(search_term)
-            else:
-                manga.Bato().bato_search(search_term)
-        elif select == "Mangasee":
-            # Third question to choose how to download
-            download_select = questionary.select("Select item", choices=["Batch Download", "Single Download"]).ask()
-            if download_select == "Batch Download":
-                manga.Mangasee().mangasee_batch(search_term)
-            else:
-                manga.Mangasee().mangasee_search(search_term)
-        elif select == "ComicExtra":
-            # Third question to choose how to download
-            download_select = questionary.select("Select item", choices=["Batch Download", "Single Download"]).ask()
-            if download_select == "Batch Download":
-                manga.Comicextra().comicextra_batch(search_term)
-            else:
-                manga.Comicextra().comicextra_search(search_term)
-        else:
-            questions()
+        manga()
     elif type == "Music":
         # Second question to choose the Website.
         search_term = input("Enter the title of the Music or Podcast: ")

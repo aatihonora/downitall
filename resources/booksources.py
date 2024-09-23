@@ -26,13 +26,11 @@ from tqdm.auto import tqdm
 # Global variables.
 # Selenium Chrome options to lessen the memory usage.
 options = webdriver.ChromeOptions()
-options.add_experimental_option('prefs',  {
-    "download.default_directory": os.getcwd(),
-    "download.prompt_for_download": False,
-    "download.directory_upgrade": True,
-    "plugins.always_open_pdf_externally": True
-    }
-)
+prefs = {
+  "translate_whitelists": {"ru":"en"},
+  "translate":{"enabled":"true"}
+}
+options.add_experimental_option("prefs", prefs)
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--headless=new")
@@ -55,6 +53,13 @@ bookcli = os.getcwd()
 
 class Booksources:
     '''Book methods'''
+############################################################################
+    def directory(self):
+        if not os.path.isdir("Books"):
+            os.mkdir("Books")
+            os.chdir("Books")
+        else:
+            os.chdir("Books")
 ############################################################################
     # Defining the function for moving through pages, it takes name, pages(total pages) and, index(starting of pages).
     def page_navigation(self, name, pages, index):
@@ -91,8 +96,8 @@ class Booksources:
         for row in tbody.find_all('tr'):
             row_data = []
             for cell in row.find_all('td'):
-                cell_info = cell.text.strip()
-                row_data.append(cell_info[:30])
+                cell_info = re.sub("[\d+,;,\t\n\r\f\v]", "", cell.text.strip())
+                row_data.append(cell_info)
             data.append(row_data)
         # Creating a pandas dataframe
         df = pd.DataFrame(data)
@@ -148,19 +153,49 @@ class Booksources:
                 print("\nBook couldn\'t be retrieved")
 ############################################################################
     # Defining the function for retrying the user_choice function.
-    def retry(self, source, search_term, choice):
+    def retry(self):
         # Using match case argument to see which class called the function.
         answer = questionary.select("Do you want to download another file? ", choices=["Yes", "No"]).ask()
         if answer == "Yes":
-            if source == "libgen":
-                Booksources().Libgen().libgen_search(search_term, choice)
-            elif source == "annasarchive":
-                Booksources().Annas_Archive().annas_archive_search(search_term, choice)
-            else:
+            # Second question to choose the Website.
+            search_term = input("Enter the title or the author of the Book: ")
+            select = questionary.select("Select item", choices=["Libgen", "Annas Archive", "1337x", "Rutracker", "Golden Audio Books", "Exit"]).ask()
+            if select == "Libgen":
+                # Third question to choose filter.
+                sub_select = questionary.select("Select item", choices=["Search by Title", "Search by Author", "Exit"]).ask()
+                if sub_select == "Search by Title":
+                    choice = 1
+                    Booksources().Libgen().libgen_search(search_term, choice)
+                elif sub_select == "Search by Author":
+                    choice = 2
+                    Booksources().Libgen().libgen_search(search_term, choice)
+                else:
+                    pass
+            elif select == "Annas Archive":
+                # Third question to choose filter.
+                sub_select = questionary.select("Select item", choices=["Search by Title", "Search by Author", "Exit"]).ask()
+                if sub_select == "Search by Title":
+                    choice = 1
+                    Booksources().Annas_Archive().annas_archive_search(search_term, choice)
+                elif sub_select == "Search by Author":
+                    choice = 2
+                    Booksources().Annas_Archive().annas_archive_search(search_term, choice)
+                else:
+                    pass
+            elif select == "1337x":
                 Booksources().Torrent().torrent_search(search_term)
+            elif select == "Rutracker":
+                Booksources().Rutracker().rutracker()
+            elif select == "Golden Audio Books":
+                Booksources().Goldenaudiobooks().goldenaudiobooks(search_term)
+            else:
+                pass
+        else:
+            pass
 ############################################################################
     class Libgen:
         def libgen_search(self, search_term, choice):
+            Booksources().directory()
             # Declaring function level variables.
             source = "libgen"
             label = "paged"
@@ -236,7 +271,7 @@ class Booksources:
                 html_tag = td_html.find("a") 
                 url = base_url + html_tag["href"]
                 Booksources().download(name, url)
-                Booksources().retry(source, search_term, choice)
+                Booksources().retry()
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
@@ -250,6 +285,7 @@ class Booksources:
 ############################################################################
     class Annas_Archive:
         def annas_archive_search(self,search_term, choice):
+            Booksources().directory()
             source = "annas_archive"
             label = "paged"
             index = 1
@@ -327,7 +363,7 @@ class Booksources:
                     subprocess.Popen(["am", "start", "-n", "com.android.chrome/com.google.android.apps.chrome.Main", url])
                 else:
                     webbrowser.open(url, new=2)
-                Booksources().retry(source, search_term, choice)
+                Booksources().retry()
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
@@ -341,6 +377,7 @@ class Booksources:
 ############################################################################
     class Torrent:
         def torrent_search(self, search_term):
+            Booksources().directory()
             source = "1337x"
             label = "paged"
             choice = 0
@@ -405,7 +442,194 @@ class Booksources:
                 # Calling the aria2c module to download.
                 args = ["aria2c", "--file-allocation=none", "--seed-time=0", "-d", dir, url]
                 subprocess.call(args)
-                Booksources().retry(source, search_term, choice)
+                Booksources().retry()
+            except SessionNotCreatedException:
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
+            except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError): 
+                print("\nCould not find any thing :(")
+            except KeyboardInterrupt:
+                print("\n\nCancelled by user.")
+############################################################################
+    class Rutracker:
+        def rutracker(self, choice):
+            Booksources().directory()
+            label = "no_page"
+            index = 1
+            if choice == 1:
+                search_type = "1556"
+            else: 
+                search_type = "610"
+            # Url to access the searching.
+            web_url = f"https://rutracker-net.translate.goog/forum/viewforum.php?f={search_type}&_x_tr_sl=ru&_x_tr_tl=en&_x_tr_hl=en&_x_tr_pto=wapp"
+            # Url to access the base website
+            base_url = "https://rutracker.net/forum/"
+            try:
+                # Sending request to the webpage.
+                driver.get(web_url)
+                scroll_amount = 1000
+                driver.execute_script(f"window.scrollBy(0, {scroll_amount})")
+                time.sleep(5)
+                # Getting html page with BeautifulSoup module
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                # Finding all the mentioned elements from webpage.
+                table = soup.find_all("table", class_="forumline forum")[0]
+                index_list = []
+                name_list = []
+                link_list = []
+                html_tag = table.find_all("h4", class_="forumlink")
+                for i, tag in enumerate(html_tag, start=1):
+                    index_list.append(i)
+                    name_list.append(tag.text.strip())
+                    links = tag.find("a", text=True)
+                    link_list.append(links["href"])
+                # Iterating using zip as it lets two list loop together
+                print("\n")
+                for index_name, name in zip(index_list, name_list):
+                    # Printing name with index for user to choose.
+                    print(f"{index_name}. {name}")
+                data = Booksources().user_choice(name_list, link_list, index_list, label)
+                web_url = data[0]
+                # Sending get request to the website.
+                label = "paged"
+                page_url = web_url + "&start="
+                while True:
+                    driver.get(web_url)
+                    time.sleep(5)
+                    scroll_amount = 1000
+                    driver.execute_script(f"window.scrollBy(0, {scroll_amount})")
+                    time.sleep(5)
+                    scroll_amount = 1000
+                    driver.execute_script(f"window.scrollBy(0, {scroll_amount})")
+                    time.sleep(5)
+                    # Getting html page with BeautifulSoup module
+                    soup = BeautifulSoup(driver.page_source, "html.parser")
+                    if Booksources().exists(element = ".pg"):
+                        pages = int(soup.find_all("a", class_="pg")[-2].text.strip())
+                    else:
+                        pages = 1
+                    # Finding all the mentioned elements from webpage.
+                    index_list = []
+                    name_list = []
+                    link_list = []
+                    index_list.append(0)
+                    name_list.append("Next Page")
+                    link_list.append(page_url)
+                    html_tag = soup.find_all("a", class_="torTopic bold tt-text")
+                    for i, links in enumerate(html_tag, start=1):
+                        index_list.append(i)
+                        name_list.append(links.text.strip())
+                        link_list.append(links["href"])
+                    index_list.append(i+1)
+                    name_list.append("Previous Page")
+                    link_list.append(page_url)
+                    # Iterating using zip as it lets two list loop together
+                    print("\n")
+                    for index_name, name in zip(index_list, name_list):
+                        # Printing name with index for user to choose.
+                        print(f"{index_name}. {name}")
+                    data = Booksources().user_choice(name_list, link_list, index_list, label)
+                    url = data[0]
+                    name = data[1]
+                    index = Booksources().page_navigation(name, pages, index)
+                    web_url = url + str(index * 50)
+                    if name != "Next Page" and name != "Previous Page":
+                        break
+                driver.get(url)
+                time.sleep(5)
+                # Getting html page with BeautifulSoup module
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                # Finding all the mentioned elements from webpage.
+                html_tag = soup.find_all("ul", class_="inlined middot-separated")[0]
+                tag = html_tag.find_all("a")[0]
+                url = tag["href"]
+                dir = os.getcwd()
+                # Calling the aria2c module to download.
+                args = ["aria2c", "--file-allocation=none", "--seed-time=0", "-d", dir, url]
+                subprocess.call(args)
+                Booksources().retry()
+            except SessionNotCreatedException:
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
+            except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+                print("\nNetwork Error!")
+            except TypeError as e:
+                print("\n", e)
+            except (IndexError, AttributeError, UnboundLocalError): 
+                print("\nCould not find any thing :(")
+            except KeyboardInterrupt:
+                print("\n\nCancelled by user.")
+############################################################################
+    class Goldenaudiobooks:
+        def goldenaudiobooks(self, search_term):
+            Booksources().directory()
+            label = "paged"
+            # Url to access the searching.
+            web_url = f"https://goldenaudiobooks.club/?s={search_term}"
+            try:
+                while True:
+                    driver.get(web_url)
+                    # Getting html page with BeautifulSoup module
+                    soup = BeautifulSoup(driver.page_source, "html.parser")
+                    # Finding all the mentioned elements from webpage.
+                    index_list = []
+                    name_list = []
+                    link_list = []
+                    img_list = []
+                    index_list.append(0)
+                    name_list.append("Next Page")
+                    link_list.append("")
+                    html_tag = soup.find_all("div", class_="post-cover")
+                    for i, tag in enumerate(html_tag, start=1):
+                        index_list.append(i)
+                        for links in tag.find_all("a"):
+                            name_list.append(links["title"].strip())
+                            link_list.append(links["href"])
+                        for img in tag.find_all("img"):
+                            img_list.append(img["src"])
+                    index_list.append(i+1)
+                    name_list.append("Previous Page")
+                    link_list.append("")
+                    # Iterating using zip as it lets two list loop together
+                    print("\n")
+                    for index_name, name in zip(index_list, name_list):
+                        # Printing name with index for user to choose.
+                        print(f"{index_name}. {name}")
+                    data = Booksources().user_choice(name_list, link_list, index_list, label)
+                    url = data[0]
+                    name = data[1]
+                    if name == "Next Page":
+                        if Booksources().exists(element = ".nav-previous"):
+                            html_tag = soup.find_all("div", class_="nav-previous")[0]
+                            web_url = html_tag.find_all("a")[0]["href"]
+                        else:
+                            pass
+                    elif name == "Previous Page":
+                        if Booksources().exists(element = ".nav-next"):
+                            html_tag = soup.find_all("div", class_="nav-next")[0]
+                            web_url = html_tag.find_all("a")[0]["href"]
+                        else:
+                            pass
+                    else:
+                        break
+                driver.get(url)
+                book_name = re.sub('[^a-z,0-9.]', '_', name, flags=re.IGNORECASE)
+                if not os.path.isdir(book_name):
+                    os.mkdir(book_name)
+                    os.chdir(book_name)
+                else:
+                    os.chdir(book_name)
+                # Getting html page with BeautifulSoup module
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                # Finding all the mentioned elements from webpage.
+                html_tag = soup.find_all("audio", class_="wp-audio-shortcode")
+                for i, links in enumerate(html_tag, start=1):
+                    url = links["src"].split("?_")[0]
+                    name = f"Chapter {i}"
+                    subprocess.call(["wget", "-O", name, url])
+                Booksources().retry()
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
