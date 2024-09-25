@@ -301,7 +301,7 @@ class Animesources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(") 
             except (RuntimeError, gdown.exceptions.FileURLRetrievalError, gdown.exceptions.FolderContentsMaximumLimitError, PermissionError):
@@ -438,7 +438,7 @@ class Animesources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(") 
             except KeyboardInterrupt:
@@ -562,7 +562,7 @@ class Animesources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(") 
             except KeyboardInterrupt:
@@ -637,7 +637,7 @@ class Animesources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(") 
             except KeyboardInterrupt:
@@ -681,7 +681,7 @@ class Animesources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(") 
             except KeyboardInterrupt:
@@ -731,7 +731,7 @@ class Animesources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(") 
             except KeyboardInterrupt:
@@ -773,7 +773,7 @@ class Animesources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(") 
             except KeyboardInterrupt:
@@ -821,7 +821,7 @@ class Animesources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(") 
             except KeyboardInterrupt:

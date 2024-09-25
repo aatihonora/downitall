@@ -117,16 +117,45 @@ class Tvsources:
             print("\nInvalid integer. The number must be in the range.") 
 ############################################################################
     # Defining the function for retrying the user_choice function.
-    def retry(self, source, search_term, choice):
+    def retry(self):
         # Using match case argument to see which class called the function.
         answer = questionary.select("Do you want to download another file? ", choices=["Yes", "No"]).ask()
         if answer == "Yes":
-            if source == "vadapav":
-                Tvsources().Vadapav().vadapav(search_term)
-            elif source == "1337x":
-                Tvsources().Torrent().torrent_search(search_term, choice)
-            else:
+            # Second question to choose the Website.
+            search_term = input("Enter the title of the TV-Series/Movie: ")
+            select = questionary.select("Select item", choices=["Vadapav", "1337x", "Documentaries", "Datadiff", "Drama", "Reset", "Exit"]).ask()
+            if select == "Vadapav":
+                # Third question to choose how to download
+                download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+                if download_select == "Single Download":
+                    Tvsources().Vadapav().vadapav_search(search_term)
+                elif download_select == "Batch Download":
+                    Tvsources().Vadapav().vadapav_batch(search_term)
+                else:
+                    pass
+            elif select == "1337x":
+                # Third question to choose the filter
+                sub_select = questionary.select("Select item", choices=["Search Movies", "Search TV-Series", "Search Documentaries", "Exit"]).ask()
+                if sub_select == "Search Movies":
+                    choice = 1
+                    Tvsources().Torrent().torrent_search(search_term, choice)
+                elif sub_select == "Search TV-Series":
+                    choice = 2
+                    Tvsources().Torrent().torrent_search(search_term, choice)
+                elif sub_select == "Search Documentaries":
+                    choice = 3
+                    Tvsources().Torrent().torrent_search(search_term, choice)
+                else:
+                    pass
+            elif select == "Documentaries":
                 Tvsources().Documentary().documentary()
+            elif select == "Datadiff":
+                Tvsources().Datadiff().datadiff_search()
+            elif select == "Drama":
+                Tvsources().Drama().drama_search(search_term)
+            else:
+                pass
+############################################################################
 ############################################################################
     class Vadapav:
         def vadapav_search(self,search_term):
@@ -164,18 +193,18 @@ class Tvsources:
                 args = ['wget', '-O', name, url]
                 subprocess.call(args)
                 print("\nDownload Complete.")
-                Tvsources().retry(source, search_term, choice)
+                Tvsources().retry()
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(")
             except KeyboardInterrupt:
                 print("\n\nCancelled by user.")
-
+############################################################################
         def vadapav_batch(self,search_term):
             source = "vadapav"
             label = "no_page"
@@ -248,16 +277,18 @@ class Tvsources:
                         start = len(data)
                         break
                 print("\nDownload Complete.")
+                Tvsources().retry()
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(")
             except KeyboardInterrupt:
                 print("\n\nCancelled by user.")
+############################################################################
 ############################################################################
     class Torrent:
         def torrent_search(self, search_term, choice):
@@ -267,8 +298,10 @@ class Tvsources:
             term = re.sub("\W", "+", search_term)
             if choice == 1:
                 search_type = "Movies"
-            else:
+            elif choice == 2:
                 search_type = "TV"
+            else:
+                search_type = "Documentaries"
             # Url to access the searching.
             web_url = f"https://1337x.to/sort-category-search/{term}/{search_type}/seeders/desc/1/"
             page_url = f"https://1337x.to/sort-category-search/{term}/{search_type}/seeders/desc/"
@@ -328,17 +361,18 @@ class Tvsources:
                 # Calling the aria2c module to download.
                 args = ["aria2c", "--file-allocation=none", "--seed-time=0", "-d", dir, url]
                 subprocess.call(args)
-                Tvsources().retry(source, search_term, choice)
+                Tvsources().retry()
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(")
             except KeyboardInterrupt:
                 print("\n\nCancelled by user.")
+############################################################################
 ############################################################################
     class Documentary:
         def documentary(self):
@@ -420,15 +454,141 @@ class Tvsources:
                     url = html_tag["content"]
                 args = ["yt-dlp", url]
                 subprocess.call(args)
-                Tvsources().retry(source, search_term, choice)
+                Tvsources().retry()
             except SessionNotCreatedException:
                 print("\nIf you are not using android then install from win_linux_requirement.txt file")
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(")
             except KeyboardInterrupt:
                 print("\n\nCancelled by user.")
 ############################################################################
+############################################################################
+    class Datadiff:
+        def datadiff_search(self):
+            source = "vadapav"
+            label = "no_page"
+            loop = 0
+            # Url to access the searching.
+            url = "https://a.datadiff.us.kg/"
+            try:
+                while True:
+                    # Sending request to the webpage.
+                    driver.get(url)
+                    # Getting html page with BeautifulSoup module
+                    soup = BeautifulSoup(driver.page_source, "html.parser")
+                    # Finding all the mentioned elements from webpage.
+                    html_tag = soup.find_all("span", class_="name")
+                    index_list = []
+                    name_list = []
+                    link_list = []
+                    for i, tag in enumerate(html_tag, start=1):
+                        index_list.append(i)
+                        for links in tag.find_all("a"):
+                            name_list.append(links.text.strip())
+                            link_list.append(url + links["href"]) 
+                    index_list.append(i+1)
+                    name_list.append("Exit")
+                    link_list.append("")
+                    start = 0
+                    end = 100
+                    while True:
+                        index_list.insert(start, start)
+                        name_list.insert(start, "Next Page")
+                        link_list.insert(start, "")
+                        print("\n")
+                        for i, name in enumerate(name_list[start:end+1]):
+                            print(f"{i}. {name}")
+                        names_list = name_list[start:end+1]
+                        links_list = link_list[start:end+1]
+                        data = Tvsources().user_choice(names_list, links_list, index_list, label)
+                        loop = 1
+                        url = data[0]
+                        name = data[1]
+                        if name == "Next Page":
+                            if names_list[-1] == "Exit":
+                                exit()
+                            else:
+                                start += 100
+                                end += 100
+                        elif name == "Exit":
+                            exit()
+                        else: 
+                            break
+                    if ".mkv" in url:
+                        break
+                # Downloading the file with wget as it is fast and has its own progress bar.
+                args = ['wget', '-O', name, url]
+                subprocess.call(args)
+                print("\nDownload Complete.")
+                Tvsources().retry()
+            except SessionNotCreatedException:
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
+            except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+                print("\nNetwork Error!")
+            except TypeError as e:
+                pass
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(")
+            except KeyboardInterrupt:
+                print("\n\nCancelled by user.")
+############################################################################
+############################################################################
+    class Drama:
+        def drama_search(self,search_term):
+            source = "vadapav"
+            label = "next_only"
+            choice = 0
+            # Url to access the searching.
+            url = f"https://www.onlinepakistanidrama.com/search?q={search_term}&m=1"
+            try:
+                while True:
+                    # Sending request to the webpage.
+                    driver.get(url)
+                    # Getting html page with BeautifulSoup module
+                    soup = BeautifulSoup(driver.page_source, "html.parser")
+                    # Finding all the mentioned elements from webpage.
+                    html_tag = soup.find_all("h2", class_="entry-title")
+                    index_list = []
+                    name_list = []
+                    link_list = []
+                    index_list.append(0)
+                    name_list.append("Next Page")
+                    link_list.append("")
+                    for i, tag in enumerate(html_tag, start=1):
+                        index_list.append(i)
+                        for links in tag.find_all("a"):
+                            name_list.append(links.text.strip())
+                            link_list.append(links["href"]) 
+                    print("\n")
+                    for i, name in zip(index_list, name_list):
+                        print(f"{i}. {name}")
+                    data = Tvsources().user_choice(name_list, link_list, index_list, label)
+                    url = data[0]
+                    name = data[1]
+                    if name == "Next Page":
+                        if Tvsources().exists(element = ".blog-pager-older-link.load-more.btn"):
+                            url = soup.find_all("a", class_="blog-pager-older-link load-more btn")[0]["href"]
+                    else:
+                        break
+                driver.get(url)
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                url = "https://youtube.com/watch?v=" + soup.find_all("iframe", title="YouTube video player")[0]["src"].split("v=")[1]
+                # Downloading the file with wget as it is fast and has its own progress bar.
+                args = ['yt-dlp', '-o', name, url]
+                subprocess.call(args)
+                print("\nDownload Complete.")
+                Tvsources().retry()
+            except SessionNotCreatedException:
+                print("\nIf you are not using android then install from win_linux_requirement.txt file")
+            except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
+                print("\nNetwork Error!")
+            except TypeError as e:
+                pass
+            except (IndexError, AttributeError, UnboundLocalError):
+                print("\nCould not find any thing :(")
+            except KeyboardInterrupt:
+                print("\n\nCancelled by user.")

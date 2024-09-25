@@ -185,7 +185,15 @@ class Booksources:
             elif select == "1337x":
                 Booksources().Torrent().torrent_search(search_term)
             elif select == "Rutracker":
-                Booksources().Rutracker().rutracker()
+                sub_select = questionary.select("Select item", choices=["Search General Courses", "Search Computer Courses", "Exit"]).ask()
+                if sub_select == "Search General Courses":
+                    choice = 1
+                    Booksources().Rutracker().rutracker(choice)
+                elif sub_select == "Search Computer Courses":
+                    choice = 2
+                    Booksources().Rutracker().rutracker(choice)
+                else:
+                    pass
             elif select == "Golden Audio Books":
                 Booksources().Goldenaudiobooks().goldenaudiobooks(search_term)
             else:
@@ -277,7 +285,7 @@ class Booksources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except (TypeError, urllib3.exceptions.ProtocolError) as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError): 
                 print("\nCould not find any thing :(")
             except KeyboardInterrupt:
@@ -369,7 +377,7 @@ class Booksources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except (TypeError, FileNotFoundError) as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError): 
                 print("\nCould not find any thing :(")
             except KeyboardInterrupt:
@@ -448,7 +456,7 @@ class Booksources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError): 
                 print("\nCould not find any thing :(")
             except KeyboardInterrupt:
@@ -556,7 +564,7 @@ class Booksources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError): 
                 print("\nCould not find any thing :(")
             except KeyboardInterrupt:
@@ -635,7 +643,7 @@ class Booksources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError): 
                 print("\nCould not find any thing :(")
             except KeyboardInterrupt:

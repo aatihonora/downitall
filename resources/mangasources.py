@@ -105,9 +105,6 @@ class Mangasources:
         # Creating two dictionary that take key as index and value as items from "link_list" and "name_list" respectively.
         url_dict = {index_list[i]: link_list[i] for i in range(len(link_list))}
         name_dict = {index_list[i]: name_list[i] for i in range(len(name_list))}
-        print("\n")
-        for key, value in name_dict.items():
-            print(f'{key}. {value}')
         try:
             # If statement in case no manga/chapter was found.
             if label == "no_page" and not name_list:
@@ -222,7 +219,7 @@ class Mangasources:
             file = open(f".{name}.txt", "r+") 
             start = 0
         for chapter_name in name_list[start:]:
-            data = Mangasources().directory(name, chapter_name)
+            data = Mangasources().download_directory(name, chapter_name)
             path = data[0]
             manga = data[1]
             chapter = data[2]
@@ -274,18 +271,18 @@ class Mangasources:
                  # Third question to choose how to download
                 download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
                 if download_select == "Single Download":
-                    Mangasources().Bato().bato_batch(search_term)
-                elif select == "Batch Download":
                     Mangasources().Bato().bato_search(search_term)
+                elif select == "Batch Download":
+                    Mangasources().Bato().bato_batch(search_term)
                 else:
                     pass
             elif select == "Mangasee":
                 # Third question to choose how to download
                 download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
                 if download_select == "Single Download":
-                    Mangasources().Mangasee().mangasee_batch(search_term)
-                elif select == "Batch Download":
                     Mangasources().Mangasee().mangasee_search(search_term)
+                elif select == "Batch Download":
+                    Mangasources().Mangasee().mangasee_batch(search_term)
                 else:
                     pass
             elif select == "Nyaa":
@@ -294,9 +291,9 @@ class Mangasources:
                 # Third question to choose how to download
                 download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
                 if download_select == "Single Download":
-                    Mangasources().Comicextra().comicextra_batch(search_term)
-                elif select == "Batch Download":
                     Mangasources().Comicextra().comicextra_search(search_term)
+                elif select == "Batch Download":
+                    Mangasources().Comicextra().comicextra_batch(search_term)
                 else:
                     pass
             elif select == "Comick":
@@ -353,6 +350,9 @@ class Mangasources:
                     html_tag = soup.find_all("img", class_="rounded")
                     for img in html_tag:
                         img_list.append(img["src"])
+                    print("\n")
+                    for i, name in zip(index_list, name_list):
+                        print(f"{i}. {name}")
                     while True:
                         # Calling the user choice function.
                         data = Mangasources().user_choice(name_list, link_list, index_list, label)
@@ -390,6 +390,9 @@ class Mangasources:
                     link_list.append(base_url + links["href"])
                 name_list.reverse()
                 link_list.reverse()
+                print("\n")
+                for i, name in zip(index_list, name_list):
+                     print(f"{i}. {name}")
                 # Using core method as function to get rid of repeating the same lines.
                 data = Mangasources().user_choice(name_list, link_list, index_list, label)
                 url = data[0]
@@ -417,7 +420,7 @@ class Mangasources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(")
             except KeyboardInterrupt:
@@ -470,6 +473,9 @@ class Mangasources:
                     html_tag = soup.find_all("img", class_="rounded")
                     for img in html_tag:
                         img_list.append(img["src"])
+                    print("\n")
+                    for i, name in zip(index_list, name_list):
+                        print(f"{i}. {name}")
                     while True:
                         # Calling the user choice function.
                         data = Mangasources().user_choice(name_list, link_list, index_list, label)
@@ -512,7 +518,7 @@ class Mangasources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(")
             except KeyboardInterrupt:
@@ -554,6 +560,9 @@ class Mangasources:
                     html_tag = soup.find_all("img", class_="img-fluid")
                     for img in html_tag:
                         img_list.append(img["src"])
+                    print("\n")
+                    for i, name in zip(index_list, name_list):
+                        print(f"{i}. {name}")
                     # Calling the user choice function.
                     data = Mangasources().user_choice(name_list, link_list, index_list, label)
                     url = data[0]
@@ -589,6 +598,9 @@ class Mangasources:
                     link_list.append(re.sub('-page-1','',(base_url + links["href"])))
                 name_list.reverse()
                 link_list.reverse()
+                print("\n")
+                for i, name in zip(index_list, name_list):
+                    print(f"{i}. {name}")
                 # Using core method as function to get rid of repeating the same lines.
                 data = Mangasources().user_choice(name_list, link_list, index_list, label)
                 url = data[0]
@@ -616,7 +628,7 @@ class Mangasources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(")
             except KeyboardInterrupt:
@@ -657,6 +669,9 @@ class Mangasources:
                     for img in html_tag:
                         img_list.append(img["src"])
                     # Calling the user choice function.
+                    print("\n")
+                    for i, name in zip(index_list, name_list):
+                        print(f"{i}. {name}")
                     data = Mangasources().user_choice(name_list, link_list, index_list, label)
                     url = data[0]
                     name = data[1]
@@ -696,7 +711,7 @@ class Mangasources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(")
             except KeyboardInterrupt:
@@ -771,7 +786,7 @@ class Mangasources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(") 
             except KeyboardInterrupt:
@@ -828,6 +843,9 @@ class Mangasources:
                             img_list.append(img["src"])
                     while True:        
                         # Calling the user choice function.
+                        print("\n")
+                        for i, name in zip(index_list, name_list):
+                            print(f"{i}. {name}")
                         data = Mangasources().user_choice(name_list, link_list, index_list, label)
                         url = data[0]
                         name = data[1]
@@ -865,6 +883,9 @@ class Mangasources:
                     link_list.append(links["href"])
                 name_list.reverse()
                 link_list.reverse()
+                print("\n")
+                for i, name in zip(index_list, name_list):
+                    print(f"{i}. {name}")
                 # Using core method as function to get rid of repeating the same lines.
                 data = Mangasources().user_choice(name_list, link_list, index_list, label)
                 url = data[0]
@@ -893,7 +914,7 @@ class Mangasources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(")
             except KeyboardInterrupt:
@@ -948,6 +969,9 @@ class Mangasources:
                         for img in tag.find_all("img", alt=True):
                             img_list.append(img["src"])
                     while True:        
+                        print("\n")
+                        for i, name in zip(index_list, name_list):
+                            print(f"{i}. {name}")
                         # Calling the user choice function.
                         data = Mangasources().user_choice(name_list, link_list, index_list, label)
                         url = data[0]
@@ -994,7 +1018,7 @@ class Mangasources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(")
             except KeyboardInterrupt:
@@ -1036,6 +1060,9 @@ class Mangasources:
                     index_list.append(i+1)
                     name_list.append("Previous Page")
                     link_list.append("")
+                    print("\n")
+                    for i, name in zip(index_list, name_list):
+                        print(f"{i}. {name}")
                     # Calling the user choice function.
                     data = Mangasources().user_choice(name_list, link_list, index_list, label)
                     url = data[0]
@@ -1066,7 +1093,7 @@ class Mangasources:
             except (requests.exceptions.RequestException, WebDriverException, TimeoutException):
                 print("\nNetwork Error!")
             except TypeError as e:
-                print("\n", e)
+                pass
             except (IndexError, AttributeError, UnboundLocalError):
                 print("\nCould not find any thing :(")
             except KeyboardInterrupt:

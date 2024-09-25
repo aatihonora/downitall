@@ -9,9 +9,6 @@ import questionary
 from resources import (Animesources, Booksources, Mangasources, Musicsources,
                        Tvsources)
 
-# Global variables.
-tv = Tvsources()
-music = Musicsources()
 # Space for functions start from here
 
 ############################################################################
@@ -102,11 +99,11 @@ def books():
         Booksources().Torrent().torrent_search(search_term)
     elif select == "Rutracker":
         # Third question to choose filter.
-        sub_select = questionary.select("Select item", choices=["Computer Courses", "General Courses", "Exit"]).ask()
-        if sub_select == "Computer Courses":
+        sub_select = questionary.select("Select item", choices=["Search General Courses", "Search Computer Courses", "Exit"]).ask()
+        if sub_select == "Search General Courses":
             choice = 1
             Booksources().Rutracker().rutracker(choice)
-        elif sub_select == "General Courses":
+        elif sub_select == "Search Computer Courses":
             choice = 2
             Booksources().Rutracker().rutracker(choice)
         else:
@@ -126,18 +123,18 @@ def manga():
          # Third question to choose how to download
         download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
         if download_select == "Single Download":
-            Mangasources().Bato().bato_batch(search_term)
-        elif select == "Batch Download":
             Mangasources().Bato().bato_search(search_term)
+        elif select == "Batch Download":
+            Mangasources().Bato().bato_batch(search_term)
         else:
             pass
     elif select == "Mangasee":
         # Third question to choose how to download
         download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
         if download_select == "Single Download":
-            Mangasources().Mangasee().mangasee_batch(search_term)
-        elif select == "Batch Download":
             Mangasources().Mangasee().mangasee_search(search_term)
+        elif select == "Batch Download":
+            Mangasources().Mangasee().mangasee_batch(search_term)
         else:
             pass
     elif select == "Nyaa":
@@ -146,13 +143,70 @@ def manga():
         # Third question to choose how to download
         download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
         if download_select == "Single Download":
-            Mangasources().Comicextra().comicextra_batch(search_term)
-        elif select == "Batch Download":
             Mangasources().Comicextra().comicextra_search(search_term)
+        elif select == "Batch Download":
+            Mangasources().Comicextra().comicextra_batch(search_term)
         else:
             pass
     elif select == "Comick":
         Mangasources().Getcomics().getcomics(search_term)
+    elif select == "Reset":
+        questions()
+    else:
+        pass
+############################################################################
+def music():
+    # Second question to choose the Website.
+    search_term = input("Enter the title of the Music or Podcast: ")
+    select = questionary.select("Select item", choices=["Lightaudio", "Bomb-music", "PlayerFM", "Youtube Music", "1337x", "Reset", "Exit"]).ask()
+    if select == "Lightaudio":
+        Musicsources().Light_audio().lightaudio(search_term)
+    elif select == "Bomb-music":
+        Musicsources().Bomb_music().bombmusic(search_term)
+    elif select == "PlayerFM":
+        Musicsources().Player_fm().player(search_term)
+    elif select == "Youtube Music":
+        Musicsources().Youtubemusic().youtubemusic(search_term)
+    elif select == "1337x":
+        Musicsources().Torrent().torrent_search(search_term)
+    elif select == "Reset":
+        questions()
+    else:
+        pass
+
+def tv():
+    # Second question to choose the Website.
+    search_term = input("Enter the title of the TV-Series/Movie: ")
+    select = questionary.select("Select item", choices=["Vadapav", "1337x", "Documentaries", "Datadiff", "Drama", "Reset", "Exit"]).ask()
+    if select == "Vadapav":
+        # Third question to choose how to download
+        download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+        if download_select == "Single Download":
+            Tvsources().Vadapav().vadapav_search(search_term)
+        elif download_select == "Batch Download":
+            Tvsources().Vadapav().vadapav_batch(search_term)
+        else:
+            pass
+    elif select == "1337x":
+        # Third question to choose the filter
+        sub_select = questionary.select("Select item", choices=["Search Movies", "Search TV-Series", "Search Documentaries", "Exit"]).ask()
+        if sub_select == "Search Movies":
+            choice = 1
+            Tvsources().Torrent().torrent_search(search_term, choice)
+        elif sub_select == "Search TV-Series":
+            choice = 2
+            Tvsources().Torrent().torrent_search(search_term, choice)
+        elif sub_select == "Search Documentaries":
+            choice = 3
+            Tvsources().Torrent().torrent_search(search_term, choice)
+        else:
+            pass
+    elif select == "Documentaries":
+        Tvsources().Documentary().documentary()
+    elif select == "Datadiff":
+        Tvsources().Datadiff().datadiff_search()
+    elif select == "Drama":
+        Tvsources().Drama().drama_search(search_term)
     elif select == "Reset":
         questions()
     else:
@@ -169,41 +223,9 @@ def questions():
     elif type == "Manga":
         manga()
     elif type == "Music":
-        # Second question to choose the Website.
-        search_term = input("Enter the title of the Music or Podcast: ")
-        select = questionary.select("Select item", choices=["Lightaudio", "Bomb-music", "PlayerFM", "Reset"]).ask()
-        if select == "Lightaudio":
-            music.Light_audio().lightaudio(search_term)
-        elif select == "Bomb-music":
-            music.Bomb_music().bombmusic(search_term)
-        elif select == "PlayerFM":
-            music.Player_fm().player(search_term)
-        else:
-            questions()
+        music()
     elif type == "TV/Movie":
-        # Second question to choose the Website.
-        search_term = input("Enter the title of the TV-Series/Movie: ")
-        select = questionary.select("Select item", choices=["Vadapav", "1337x", "Documentaries", "Reset"]).ask()
-        if select == "Vadapav":
-            # Third question to choose how to download
-            download_select = questionary.select("Select item", choices=["Batch Download", "Single Download"]).ask()
-            if download_select == "Batch Download":
-                tv.Vadapav().vadapav_batch(search_term)
-            else:
-                tv.Vadapav().vadapav_search(search_term)
-        elif select == "1337x":
-            # Third question to choose the filter
-            sub_select = questionary.select("Select item", choices=["Search Movies", "Search TV-Series"]).ask()
-            if sub_select == "Search Movies":
-                choice = 1
-                tv.Torrent().torrent_search(search_term, choice)
-            else:
-                choice = 2
-                tv.Torrent().torrent_search(search_term, choice)
-        elif select == "Documentaries":
-            tv.Documentary().documentary()
-        else:
-            questions()
+        tv()
     elif type == "Exit":
         pass
 
