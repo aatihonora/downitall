@@ -12,7 +12,7 @@ IT DOES NOT HOST ANYTHING.
 
 Step 1: Download Termux from fdroid and install it.
 
-Step 2: Download preferred tar.zip from [Releases](https://github.com/aatihonora/downitall/releases)
+Step 2: Download [downitall-android-tar.gz](https://github.com/aatihonora/downitall/releases/download/v1.0.0/downitall-1.0-android.tar.gz)
 
 Step 3: Copy and paste
 
@@ -46,7 +46,7 @@ wsl --install
 
 Step 3: Now write wsl to set it up.
 
-Step 4: Download preferred tar.zip from [Releases](https://github.com/aatihonora/downitall/releases)
+Step 4: Download [downitall-windows-tar.gz](https://github.com/aatihonora/downitall/releases/download/v1.0.0/downitall-1.0-windows.tar.gz)
 
 Step 5: From here linux and windows have same process, use these commands to properly install it.
 
@@ -99,16 +99,8 @@ downitall
 4. 1337x [Tracks/Albums] [Torrent]
 5. Youtube Music [Tracks]
 
-## TV-Series/Movies
-
-1. Vadapav [TV-Series/Movies]
-2. 1337x [TV-Series/Movies] [Torrent]
-3. DocumentayTop [Documentaries] [Torrent]
-4. Datadiff [Asian-Series/TV-Series/Movies]
-5. Drama PK [Pakistani Drama]
-
 ## Streaming [Experimental: Requires VLC]
-Windows not supported for now.
+Windows is not supported for now.
 
 1. Heartive [TV-Series/Movies/Live-TV]
 2. Miruro [Anime]
@@ -116,4 +108,10 @@ Windows not supported for now.
 4. Cxtvlive [US Live-TV]
 5. IPTV [Live TV]
 
+## TV-Series/Movies
 
+1. Vadapav [TV-Series/Movies]
+2. 1337x [TV-Series/Movies] [Torrent]
+3. DocumentayTop [Documentaries] [Torrent]
+4. Datadiff [Asian-Series/TV-Series/Movies]
+5. Drama PK [Pakistani Drama]
