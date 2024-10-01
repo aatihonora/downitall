@@ -12,24 +12,24 @@ IT DOES NOT HOST ANYTHING.
 
 Step 1: Download Termux from fdroid and install it.
 
-Step 2: Copy and paste
+Step 2: Download preferred tar.zip from [Releases](https://github.com/aatihonora/downitall/releases)
+
+Step 3: Copy and paste
 
 ```
 pkg update
 termux-setup-storage
-pkg install -y python git openssl x11-repo tur-repo aria2 wget
-pkg install -y chromium python-pandas
-git clone https://github.com/aatihonora/bookcli/
-cd bookcli
-pip install -r android_requirements.txt
-python bookcli.py
+pkg install -y python openssl x11-repo tur-repo aria2 wget
+pkg install -y chromium python-panda
+pip install downitall-1.0-android.tar.gz
+downitall
 ```
 
 ### Already installed
+Just use the command.
 
 ```
-cd bookcli
-python bookcli.py
+downitall
 ```
 
 ## Window/Linux
@@ -46,52 +46,73 @@ wsl --install
 
 Step 3: Now write wsl to set it up.
 
-Step 4: From here linux and windows have same process, use these commands to properly install it.
+Step 4: Download preferred tar.zip from [Releases](https://github.com/aatihonora/downitall/releases)
+
+Step 5: From here linux and windows have same process, use these commands to properly install it.
 
 ```
 sudo apt update
-sudo apt install python3 chromium-browser git aria2 wget
-git clone https://github.com/aatihonora/bookcli/
-cd bookcli
-pip install -r win_linux_requirements.txt
-python bookcli.py
+sudo apt install python3 chromium-browser aria2 wget
+pip install downitall-1.0-windows.tar.gz
+downitall
 ```
 
 ### Already installed
+Just use the command.
 
 ```
-cd bookcli
-python bookcli.py
+downitall
 ```
 
 # Supported Websites
-
-## Books
-
-1. Libgen [Books]
-2. Anna's Archive [Books]
-3. 1337x [Books] [Courses] [Torrent]
-
-## Manga
-
-1. Bato.to [Manhwa/Manhua]
-2. Mangasee [Manga]
-3. ComicExtra [Comic]
 
 ## Anime
 
 1. TokyoInsider [Anime]
 2. Nyaa.si [Anime] [Torrent]
 3. Kayoanime [Anime]
+4. Nibl [Anime]
+5. Animk [Anime]
 
-## TV-Series/Movies
 
-1. Vadapav [TV-Series/Movies]
-2. 1337x [TV-Series/Movies] [Torrent]
-3. DocumentayTop [Documentaries] [Torrent]
+## Books
+
+1. Libgen [Books]
+2. Anna's Archive [Books]
+3. 1337x [Books] [Courses] [Torrent]
+4. Rutracker [Books] [Courses] [Torrent]
+5. Golden Audio Books [Audiobooks]
+
+## Manga
+
+1. Bato.to [Manhwa/Manhua]
+2. Mangasee [Manga]
+3. ComicExtra [Comic]
+4. Nyaa.si [Manga]
+5. Get Comic [Comic]
 
 ## Music
 
 1. Lightaudio [Tracks]
 2. Bomb-music [Tracks]
 3. PlayerFM [Podcasts]
+4. 1337x [Tracks/Albums] [Torrent]
+5. Youtube Music [Tracks]
+
+## TV-Series/Movies
+
+1. Vadapav [TV-Series/Movies]
+2. 1337x [TV-Series/Movies] [Torrent]
+3. DocumentayTop [Documentaries] [Torrent]
+4. Datadiff [Asian-Series/TV-Series/Movies]
+5. Drama PK [Pakistani Drama]
+
+## Streaming [Experimental: Requires VLC]
+
+1. Heartive [TV-Series/Movies/Live-TV]
+2. Miruro [Anime]
+3. Yoyomovies [TV-Series/Movies]
+4. Cxtvlive [US Live-TV]
+5. IPTV [Live TV]
+
+
