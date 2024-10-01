@@ -108,6 +108,7 @@ downitall
 5. Drama PK [Pakistani Drama]
 
 ## Streaming [Experimental: Requires VLC]
+Windows not supported for now.
 
 1. Heartive [TV-Series/Movies/Live-TV]
 2. Miruro [Anime]
