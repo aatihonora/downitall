@@ -12,16 +12,14 @@ IT DOES NOT HOST ANYTHING.
 
 Step 1: Download Termux from fdroid and install it.
 
-Step 2: Download [downitall-android-tar.gz](https://github.com/aatihonora/downitall/releases/download/v1.0.0/downitall-1.0-android.tar.gz)
-
-Step 3: Copy and paste
+Step 2: Copy and paste
 
 ```
 pkg update
 termux-setup-storage
 pkg install -y python openssl x11-repo tur-repo aria2 wget
 pkg install -y chromium python-panda
-pip install downitall-1.0-android.tar.gz
+pip install downitall-android==1.0
 downitall
 ```
 
@@ -46,14 +44,12 @@ wsl --install
 
 Step 3: Now write wsl to set it up.
 
-Step 4: Download [downitall-windows-tar.gz](https://github.com/aatihonora/downitall/releases/download/v1.0.0/downitall-1.0-windows.tar.gz)
-
-Step 5: From here linux and windows have same process, use these commands to properly install it.
+Step 4: From here linux and windows have same process, use these commands to properly install it.
 
 ```
 sudo apt update
 sudo apt install python3 chromium-browser aria2 wget
-pip install downitall-1.0-windows.tar.gz
+pip install downitall-windows==1.0
 downitall
 ```
 
