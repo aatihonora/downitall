@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+
+import subprocess
+
+from downitall.core import Core
+
+Core().questions()
