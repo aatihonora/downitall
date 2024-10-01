@@ -1,0 +1,11 @@
+requests
+bs4
+selenium==4.9.1
+cbz-generator
+tqdm
+gdown
+term-image
+questionary
+yt-dlp
+xdcc-dl
+streamlink

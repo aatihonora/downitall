@@ -1,0 +1,11 @@
+requests
+bs4
+selenium
+cbz-generator
+tqdm
+gdown
+term-image
+questionary
+yt-dlp
+xdcc-dl
+pandas
