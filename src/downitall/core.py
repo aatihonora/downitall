@@ -253,7 +253,7 @@ class Core:
     def questions(self):
         """Function to start the core app."""
         # First question to choose the medium.
-        type = questionary.select("Select item", choices=["Anime", "Book", "Manga", "Music", "TV/Movie", "Stream", "Exit"]).ask()
+        type = questionary.select("Select item", choices=["Anime", "Book", "Manga", "Music", "Stream", "TV/Movie", "Exit"]).ask()
         if type == "Anime":
             anime()
         elif type == "Book":
@@ -262,10 +262,10 @@ class Core:
             manga()
         elif type == "Music":
             music()
-        elif type == "TV/Movie":
-            tv()
         elif type == "Stream":
             stream()
+        elif type == "TV/Movie":
+            tv()
         elif type == "Exit":
             pass
     
@@ -293,11 +293,12 @@ class Core:
     
     (*) = Website uses Torrent, (-) = Website does not have download capablities
     
-    Anime: TokyoInsider, Nyaa(*), Kayoanime
-    Books: Libgen, Annas Archive(-), 1337x(*)
-    Manga: Bato, Mangasee, ComicExtra
-    Music: Light Audio, Bomb Music, PlayerFM
-    TV-Series/Movies: Vadapav, 1337x(*), Documentaries
+    Anime: TokyoInsider, Nyaa(*), Kayoanime, Nibl, Animk
+    Books: Libgen, Annas Archive(-), 1337x(*), Rutracker(*), Golden Audio Books
+    Manga: Bato, Mangasee, ComicExtra, Nyaa(*), Get Comics
+    Music: Light Audio, Bomb Music, PlayerFM, 1337x(*), Youtube Music
+    Stream: Heartive, Miruro, Yoyomovies, Cxtvlive, IPTV
+    TV-Series/Movies: Vadapav, 1337x(*), Documentaries, Datadiff, Drama PK
     """
     subprocess.call(["clear"])
     print(logo.center(20))

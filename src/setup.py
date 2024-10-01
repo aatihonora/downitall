@@ -24,6 +24,6 @@ setup(
     packages=['downitall', 'downitall.resources'],  #same as name
     package_data={'': ['license.txt', 'vlc']},
     include_package_data=True,
-    install_requires=['requests', 'bs4', 'selenium', 'pandas', 'cbz-generator', 'tqdm', 'gdown', 'term-image', 'questionary', 'yt-dlp', 'xdcc-dl', 'streamlink', 'm3u-ipytv'], #external packages as dependencies
+    install_requires=['requests', 'bs4', 'selenium==4.9.1', 'cbz-generator', 'tqdm', 'gdown', 'term-image', 'questionary', 'yt-dlp', 'xdcc-dl', 'streamlink', 'm3u-ipytv'], #external packages as dependencies
     scripts=['bin/downitall', 'bin/vlc'],
 )
