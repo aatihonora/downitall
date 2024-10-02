@@ -19,7 +19,7 @@ pkg update
 termux-setup-storage
 pkg install -y python openssl x11-repo tur-repo aria2 wget
 pkg install -y chromium python-panda
-pip install downitall-android==1.1
+pip install downitall_android==1
 downitall
 ```
 
@@ -49,7 +49,7 @@ Step 4: From here linux and windows have same process, use these commands to pro
 ```
 sudo apt update
 sudo apt install python3 chromium-browser aria2 wget
-pip install downitall-windows==1.1
+pip install downitall_windows==1
 downitall
 ```
 
