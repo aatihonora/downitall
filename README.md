@@ -18,7 +18,7 @@ Step 2: Copy and paste
 pkg update
 termux-setup-storage
 pkg install -y python openssl x11-repo tur-repo aria2 wget
-pkg install -y chromium python-panda
+pkg install -y chromium python-pandas python-lxml
 pip install downitall_android==1
 downitall
 ```
