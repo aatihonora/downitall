@@ -5,35 +5,50 @@ import os
 import subprocess
 
 import questionary
-
-from downitall.resources import (Animesources, Booksources, Mangasources,
-                                 Musicsources, Streamsources, Tvsources)
+from downitall_windows.resources import (
+    Animesources,
+    Booksources,
+    Mangasources,
+    Musicsources,
+    Streamsources,
+    Tvsources,
+)
 
 # Space for functions start from here
+
 
 ############################################################################
 # Defining the core function of UI
 def anime():
     # Second question to choose the Website.
     search_term = input("Enter the title of the Anime: ")
-    select = questionary.select("Select item", choices=["TokyoInsider", "Nyaa", "Kayoanime", "Nibl", "Animk", "Reset", "Exit"]).ask()
+    select = questionary.select(
+        "Select item",
+        choices=["TokyoInsider", "Nyaa", "Kayoanime", "Nibl", "Animk", "Reset", "Exit"],
+    ).ask()
     if select == "TokyoInsider":
         # Third question to choose how to download
-        download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+        download_select = questionary.select(
+            "Select item", choices=["Single Download", "Batch Download", "Exit"]
+        ).ask()
         if download_select == "Single Download":
             # Fourth question to choose filter.
-            sub_select = questionary.select("Select item", choices=["Completed", "Still Airing", "Exit"]).ask()
+            sub_select = questionary.select(
+                "Select item", choices=["Completed", "Still Airing", "Exit"]
+            ).ask()
             if sub_select == "Completed":
                 choice = 1
                 Animesources().Tokyoinsider().tokyoinsider_search(search_term, choice)
-            elif sub_select == "Still Airing": 
+            elif sub_select == "Still Airing":
                 choice = 2
                 Animesources().Tokyoinsider().tokyoinsider_search(search_term, choice)
             else:
                 pass
         elif download_select == "Batch Download":
             # Fourth question to choose filter.
-            sub_select = questionary.select("Select item", choices=["Completed", "Still Airing", "Exit"]).ask()
+            sub_select = questionary.select(
+                "Select item", choices=["Completed", "Still Airing", "Exit"]
+            ).ask()
             if sub_select == "Completed":
                 choice = 1
                 Animesources().Tokyoinsider().tokyoinsider_batch(search_term, choice)
@@ -49,7 +64,9 @@ def anime():
     elif select == "Kayoanime":
         Animesources().Kayoanime().kayoanime_search(search_term)
     elif select == "Nibl":
-        download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+        download_select = questionary.select(
+            "Select item", choices=["Single Download", "Batch Download", "Exit"]
+        ).ask()
         if download_select == "Single Download":
             Animesources().Nibl().nibl_search(search_term)
         elif download_select == "Batch Download":
@@ -57,7 +74,9 @@ def anime():
         else:
             pass
     elif select == "Animk":
-        download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+        download_select = questionary.select(
+            "Select item", choices=["Single Download", "Batch Download", "Exit"]
+        ).ask()
         if download_select == "Single Download":
             Animesources().Animk().animk_search(search_term)
         elif download_select == "Batch Download":
@@ -68,14 +87,29 @@ def anime():
         Core().questions()
     else:
         pass
+
+
 ############################################################################
 def books():
     # Second question to choose the Website.
     search_term = input("Enter the title or the author of the Book: ")
-    select = questionary.select("Select item", choices=["Libgen", "Annas Archive", "1337x", "Rutracker", "Golden Audio Books", "Reset", "Exit"]).ask()
+    select = questionary.select(
+        "Select item",
+        choices=[
+            "Libgen",
+            "Annas Archive",
+            "1337x",
+            "Rutracker",
+            "Golden Audio Books",
+            "Reset",
+            "Exit",
+        ],
+    ).ask()
     if select == "Libgen":
         # Third question to choose filter.
-        sub_select = questionary.select("Select item", choices=["Search by Title", "Search by Author", "Exit"]).ask()
+        sub_select = questionary.select(
+            "Select item", choices=["Search by Title", "Search by Author", "Exit"]
+        ).ask()
         if sub_select == "Search by Title":
             choice = 1
             Booksources().Libgen().libgen_search(search_term, choice)
@@ -86,7 +120,9 @@ def books():
             pass
     elif select == "Annas Archive":
         # Third question to choose filter.
-        sub_select = questionary.select("Select item", choices=["Search by Title", "Search by Author", "Exit"]).ask()
+        sub_select = questionary.select(
+            "Select item", choices=["Search by Title", "Search by Author", "Exit"]
+        ).ask()
         if sub_select == "Search by Title":
             choice = 1
             Booksources().Annas_Archive().annas_archive_search(search_term, choice)
@@ -99,7 +135,10 @@ def books():
         Booksources().Torrent().torrent_search(search_term)
     elif select == "Rutracker":
         # Third question to choose filter.
-        sub_select = questionary.select("Select item", choices=["Search General Courses", "Search Computer Courses", "Exit"]).ask()
+        sub_select = questionary.select(
+            "Select item",
+            choices=["Search General Courses", "Search Computer Courses", "Exit"],
+        ).ask()
         if sub_select == "Search General Courses":
             choice = 1
             Booksources().Rutracker().rutracker(choice)
@@ -114,14 +153,29 @@ def books():
         Core().questions()
     else:
         pass
+
+
 ############################################################################
 def manga():
     # Second question to choose the Website.
     search_term = input("Enter the title of the Manga: ")
-    select = questionary.select("Select item", choices=["Bato", "Mangasee", "Nyaa", "ComicExtra", "Getcomics", "Reset", "Exit"]).ask()
+    select = questionary.select(
+        "Select item",
+        choices=[
+            "Bato",
+            "Mangasee",
+            "Nyaa",
+            "ComicExtra",
+            "Getcomics",
+            "Reset",
+            "Exit",
+        ],
+    ).ask()
     if select == "Bato":
-         # Third question to choose how to download
-        download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+        # Third question to choose how to download
+        download_select = questionary.select(
+            "Select item", choices=["Single Download", "Batch Download", "Exit"]
+        ).ask()
         if download_select == "Single Download":
             Mangasources().Bato().bato_search(search_term)
         elif select == "Batch Download":
@@ -130,7 +184,9 @@ def manga():
             pass
     elif select == "Mangasee":
         # Third question to choose how to download
-        download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+        download_select = questionary.select(
+            "Select item", choices=["Single Download", "Batch Download", "Exit"]
+        ).ask()
         if download_select == "Single Download":
             Mangasources().Mangasee().mangasee_search(search_term)
         elif select == "Batch Download":
@@ -141,7 +197,9 @@ def manga():
         Mangasources().Nyaa().nyaa_search(search_term)
     elif select == "ComicExtra":
         # Third question to choose how to download
-        download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+        download_select = questionary.select(
+            "Select item", choices=["Single Download", "Batch Download", "Exit"]
+        ).ask()
         if download_select == "Single Download":
             Mangasources().Comicextra().comicextra_search(search_term)
         elif select == "Batch Download":
@@ -154,11 +212,24 @@ def manga():
         Core().questions()
     else:
         pass
+
+
 ############################################################################
 def music():
     # Second question to choose the Website.
     search_term = input("Enter the title of the Music or Podcast: ")
-    select = questionary.select("Select item", choices=["Lightaudio", "Bomb-music", "PlayerFM", "Youtube Music", "1337x", "Reset", "Exit"]).ask()
+    select = questionary.select(
+        "Select item",
+        choices=[
+            "Lightaudio",
+            "Bomb-music",
+            "PlayerFM",
+            "Youtube Music",
+            "1337x",
+            "Reset",
+            "Exit",
+        ],
+    ).ask()
     if select == "Lightaudio":
         Musicsources().Light_audio().lightaudio(search_term)
     elif select == "Bomb-music":
@@ -173,14 +244,29 @@ def music():
         Core().questions()
     else:
         pass
+
+
 ############################################################################
 def tv():
     # Second question to choose the Website.
     search_term = input("Enter the title of the TV-Series/Movie: ")
-    select = questionary.select("Select item", choices=["Vadapav", "1337x", "Documentaries", "Datadiff", "Drama", "Reset", "Exit"]).ask()
+    select = questionary.select(
+        "Select item",
+        choices=[
+            "Vadapav",
+            "1337x",
+            "Documentaries",
+            "Vegamovies",
+            "Asian Dramas",
+            "Reset",
+            "Exit",
+        ],
+    ).ask()
     if select == "Vadapav":
         # Third question to choose how to download
-        download_select = questionary.select("Select item", choices=["Single Download", "Batch Download", "Exit"]).ask()
+        download_select = questionary.select(
+            "Select item", choices=["Single Download", "Batch Download", "Exit"]
+        ).ask()
         if download_select == "Single Download":
             Tvsources().Vadapav().vadapav_search(search_term)
         elif download_select == "Batch Download":
@@ -189,7 +275,15 @@ def tv():
             pass
     elif select == "1337x":
         # Third question to choose the filter
-        sub_select = questionary.select("Select item", choices=["Search Movies", "Search TV-Series", "Search Documentaries", "Exit"]).ask()
+        sub_select = questionary.select(
+            "Select item",
+            choices=[
+                "Search Movies",
+                "Search TV-Series",
+                "Search Documentaries",
+                "Exit",
+            ],
+        ).ask()
         if sub_select == "Search Movies":
             choice = 1
             Tvsources().Torrent().torrent_search(search_term, choice)
@@ -203,39 +297,44 @@ def tv():
             pass
     elif select == "Documentaries":
         Tvsources().Documentary().documentary()
-    elif select == "Datadiff":
-        Tvsources().Datadiff().datadiff_search()
-    elif select == "Drama":
-        Tvsources().Drama().drama_search(search_term)
+    elif select == "Vegamovies":
+        Tvsources().Vegamovies().vegamovies(search_term)
+    elif select == "Asian Dramas":
+        Tvsources().Asian_Dramas().asian_dramas()
     elif select == "Reset":
         Core().questions()
     else:
         pass
+
+
 ############################################################################
 def stream():
     # Second question to choose the Website.
     search_term = input("Enter the title of the media you want to Stream: ")
-    select = questionary.select("Select item", choices=["Heartive", "Miruro", "Yoyomovies", "Cxtvlive", "IPTV", "Reset", "Exit"]).ask()
-    if select == "Heartive":
-        sub_select = questionary.select("Select item", choices=["Search Series", "Search Movies", "Search Live Channels", "Exit"]).ask()
-        if sub_select == "Search Series":
-            choice = 1
-            Streamsources().Heartive().heartive(search_term, choice)
-        elif sub_select == "Search Movies": 
-            choice = 2
-            Streamsources().Heartive().heartive(search_term, choice)
-        elif sub_select == "Search Live Channels":
-            Streamsources().Heartive().heartivetv()
-        else:
-            pass
+    select = questionary.select(
+        "Select item",
+        choices=[
+            "Anizone",
+            "Miruro",
+            "Hydrahd",
+            "Cxtvlive",
+            "IPTV",
+            "Reset",
+            "Exit",
+        ],
+    ).ask()
+    if select == "Anizone":
+        Streamsources().Anizone().anizone(search_term)
     elif select == "Miruro":
         Streamsources().Miruro().miruro(search_term)
-    elif select == "Yoyomovies":
-        Streamsources().Yoyomovies().yoyomovies(search_term)
+    elif select == "Hydrahd":
+        Streamsources().Hydrahd().hydrahd(search_term)
     elif select == "Cxtvlive":
         Streamsources().Cxtvlive().cxtvlive()
     elif select == "IPTV":
-        sub_select = questionary.select("Select item", choices=["Global IPTV", "South Asian IPTV", "Exit"]).ask()
+        sub_select = questionary.select(
+            "Select item", choices=["Global IPTV", "South Asian IPTV", "Exit"]
+        ).ask()
         if sub_select == "Global IPTV":
             choice = 1
             Streamsources().Iptv().iptv(choice)
@@ -248,12 +347,17 @@ def stream():
         Core().questions()
     else:
         pass
+
+
 ############################################################################
 class Core:
     def questions(self):
         """Function to start the core app."""
         # First question to choose the medium.
-        type = questionary.select("Select item", choices=["Anime", "Book", "Manga", "Music", "Stream", "TV/Movie", "Exit"]).ask()
+        type = questionary.select(
+            "Select item",
+            choices=["Anime", "Book", "Manga", "Music", "TV/Movie", "Stream", "Exit"],
+        ).ask()
         if type == "Anime":
             anime()
         elif type == "Book":
@@ -262,22 +366,22 @@ class Core:
             manga()
         elif type == "Music":
             music()
-        elif type == "Stream":
-            stream()
         elif type == "TV/Movie":
             tv()
+        elif type == "Stream":
+            stream()
         elif type == "Exit":
             pass
-    
+
     # Creating and changing to Download folder.
-    os.chdir('/data/data/com.termux/files/home/storage/downloads')
+    os.chdir("/mnt/e/Downloads/")
     dir = "Downitall"
     if not os.path.isdir(dir):
         os.mkdir(dir)
         os.chdir(dir)
     else:
         os.chdir(dir)
-    
+
     # General UI and introduction with guide.
     logo = """
     ########   #######   #######  ##    ##  ######  ##       ####
@@ -302,5 +406,6 @@ class Core:
     """
     subprocess.call(["clear"])
     print(logo.center(20))
-    
+
+
 choice = 0

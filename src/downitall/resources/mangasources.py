@@ -6,7 +6,7 @@ import re
 import shutil
 import subprocess
 import sys
-from time import sleep
+import time
 
 import pandas as pd
 import questionary
@@ -451,6 +451,7 @@ class Mangasources:
                         html_tag = soup.find("ul", class_="pagination pagination-sm mb-0")
                         # Finding the last td tag and getting its text which is the number of last page and converting it into integer.
                         pages = int(re.sub("\W+", "", html_tag.find_all("li")[-2].getText()))
+                        print(pages)
                     else:
                         pass
                     # Finding all the mentioned elements from webpage.
@@ -1030,14 +1031,14 @@ class Mangasources:
             Mangasources().directory()
             # Declaring function level variables.
             label = "paged"
-            # Making search term better for url through regex.
-            term = re.sub("\W", "+", search_term)
             # Url to access webpage. 
-            web_url = f"https://getcomics.org/?s={term}"
+            web_url = f"https://getcomics.org/?s={search_term}"
             try:
                 # Sending request to the webpage.
+                driver.get(web_url)
+                print("water")
                 while True:
-                    driver.get(web_url)
+                    time.sleep(5)
                     # Getting html page with BeautifulSoup module
                     soup = BeautifulSoup(driver.page_source, "html.parser")
                     # Finding all the mentioned elements from webpage.
@@ -1057,6 +1058,7 @@ class Mangasources:
                             img_list.append(names["src"])
                         for links in tag.find_all("a"):
                             link_list.append(links["href"])
+                        print(link_list)
                     index_list.append(i+1)
                     name_list.append("Previous Page")
                     link_list.append("")
