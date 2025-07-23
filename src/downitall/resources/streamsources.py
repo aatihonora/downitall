@@ -14,17 +14,15 @@ import requests
 from bs4 import BeautifulSoup
 from ipytv import playlist
 from selenium import webdriver
-from selenium.common.exceptions import (
-    NoSuchElementException,
-    SessionNotCreatedException,
-    TimeoutException,
-    WebDriverException,
-)
+from selenium.common.exceptions import (NoSuchElementException,
+                                        SessionNotCreatedException,
+                                        TimeoutException, WebDriverException)
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
-from seleniumwire import webdriver  # <<< This replaces normal selenium.webdriver
+from seleniumwire import \
+    webdriver  # <<< This replaces normal selenium.webdriver
 
 # Global variables.
 # Selenium Chrome options to lessen the memory usage.
@@ -294,6 +292,7 @@ class Streamsources:
             try:
                 # Sending request to the webpage.
                 driver.get(web_url)
+                print("Wait a few moments")
                 time.sleep(6)
                 while True:
                     soup = BeautifulSoup(driver.page_source, "html.parser")
@@ -467,6 +466,7 @@ class Streamsources:
                 time.sleep(4)
                 play_button = driver.find_element(By.CLASS_NAME, "video-play-button")
                 driver.execute_script("arguments[0].click();", play_button)
+                print("Wait a few moments")
                 time.sleep(15)
                 stream_urls = []
                 for request in driver.requests:
