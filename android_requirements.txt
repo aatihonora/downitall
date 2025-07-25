@@ -12,3 +12,4 @@ tqdm==4.67.1
 ytmusicapi==1.10.3
 streamlink==7.5.0
 m3u-ipytv==0.2.11
+setuptools==80.9.0

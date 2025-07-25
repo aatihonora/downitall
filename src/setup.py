@@ -16,7 +16,7 @@ subprocess.call(["chmod", "-R", "a+rX", "."])
 
 setup(
     name="downitall_windows",
-    version="1.1",
+    version="1.1.1",
     description="A cli to download and stream all kind of media",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -40,6 +40,7 @@ setup(
         "xdcc-dl==5.2.1",
         "streamlink==7.5.0",
         "m3u-ipytv==0.2.11",
+        "setuptools==80.9.0",
     ],  # external packages as dependencies
     scripts=["bin/downitall"],
 )

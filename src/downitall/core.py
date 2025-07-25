@@ -357,7 +357,8 @@ class Core:
             pass
 
     # Creating and changing to Download folder.
-    os.chdir("/mnt/e/Downloads/")
+    # os.chdir("/data/data/com.termux/files/home/storage/downloads")
+    os.chdir("/mnt/c/Users/Public/Downloads/")
     dir = "Downitall"
     if not os.path.isdir(dir):
         os.mkdir(dir)
