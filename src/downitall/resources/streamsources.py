@@ -14,15 +14,17 @@ import requests
 from bs4 import BeautifulSoup
 from ipytv import playlist
 from selenium import webdriver
-from selenium.common.exceptions import (NoSuchElementException,
-                                        SessionNotCreatedException,
-                                        TimeoutException, WebDriverException)
+from selenium.common.exceptions import (
+    NoSuchElementException,
+    SessionNotCreatedException,
+    TimeoutException,
+    WebDriverException,
+)
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
-from seleniumwire import \
-    webdriver  # <<< This replaces normal selenium.webdriver
+from seleniumwire import webdriver  # <<< This replaces normal selenium.webdriver
 
 # Global variables.
 # Selenium Chrome options to lessen the memory usage.
@@ -145,6 +147,7 @@ class Streamsources:
                     quality = "best"
                 else:
                     quality = "worst"
+                # subprocess.call(["vlc", url, quality])
                 subprocess.call(["mpv", "--really-quiet", "--fs", url])
                 return True
             else:

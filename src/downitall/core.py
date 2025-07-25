@@ -5,7 +5,8 @@ import os
 import subprocess
 
 import questionary
-from downitall_windows.resources import (
+
+from downitall.resources import (
     Animesources,
     Booksources,
     Mangasources,
