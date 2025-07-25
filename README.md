@@ -2,7 +2,7 @@
 
 This is an educational CLI program to learn web scraping and Python.
 
-IT DOES NOT HOST ANYTHING.
+IT DOES NOT HOST ANYTHING & IS PURELY FOR EDUCATIONAL PURPOSES.
 
 # How to run it
 
@@ -17,17 +17,19 @@ Step 2: Copy and paste
 ```
 pkg update
 termux-setup-storage
-pkg install -y python openssl x11-repo tur-repo aria2 wget
-pkg install -y chromium python-pandas python-lxml
-pip install downitall_android==1
-downitall
+pkg install -y python git openssl x11-repo tur-repo aria2 wget
+pkg install -y chromium python-pandas
+git clone https://github.com/aatihonora/bookcli/
+cd bookcli
+pip install -r android_requirements.txt
+python bookcli.py
 ```
 
 ### Already installed
-Just use the command.
 
 ```
-downitall
+cd bookcli
+python bookcli.py
 ```
 
 ## Window/Linux
@@ -48,16 +50,18 @@ Step 4: From here linux and windows have same process, use these commands to pro
 
 ```
 sudo apt update
-sudo apt install python3 chromium-browser aria2 wget
-pip install downitall_windows==1
-downitall
+sudo apt install python3 chromium-browser git aria2 wget
+git clone https://github.com/aatihonora/bookcli/
+cd bookcli
+pip install -r win_linux_requirements.txt
+python bookcli.py
 ```
 
 ### Already installed
-Just use the command.
 
 ```
-downitall
+cd bookcli
+python bookcli.py
 ```
 
 # Supported Websites
@@ -70,44 +74,42 @@ downitall
 4. Nibl [Anime]
 5. Animk [Anime]
 
-
 ## Books
 
 1. Libgen [Books]
 2. Anna's Archive [Books]
 3. 1337x [Books] [Courses] [Torrent]
 4. Rutracker [Books] [Courses] [Torrent]
-5. Golden Audio Books [Audiobooks]
+5. Golden Audio Books [Audio Books]
 
 ## Manga
 
 1. Bato.to [Manhwa/Manhua]
-2. Mangasee [Manga]
-3. ComicExtra [Comic]
-4. Nyaa.si [Manga]
-5. Get Comic [Comic]
+2. Weebcentral [Manga]
+3. Nyaa [Manga] [Torrent]
+4. Rawotaku [Raw Manga]
+5. Readallcomics [Comic]
 
 ## Music
 
-1. Lightaudio [Tracks]
-2. Bomb-music [Tracks]
+1. Tancpol [Tracks]
+2. Postcast Index [Podcasts]
 3. PlayerFM [Podcasts]
-4. 1337x [Tracks/Albums] [Torrent]
-5. Youtube Music [Tracks]
-
-## Streaming [Experimental: Requires VLC]
-Windows is not supported for now.
-
-1. Heartive [TV-Series/Movies/Live-TV]
-2. Miruro [Anime]
-3. Yoyomovies [TV-Series/Movies]
-4. Cxtvlive [US Live-TV]
-5. IPTV [Live TV]
+4. Youtube Music [Tracks]
+5. 1337x [Torrent]
 
 ## TV-Series/Movies
 
 1. Vadapav [TV-Series/Movies]
 2. 1337x [TV-Series/Movies] [Torrent]
-3. DocumentayTop [Documentaries] [Torrent]
-4. Datadiff [Asian-Series/TV-Series/Movies]
-5. Drama PK [Pakistani Drama]
+3. Documentay [Documentaries]
+4. Vegamovies [Movies]
+5. Asian Dramas [Asian]
+
+## Live Streaming
+
+1. Anizone [Anime]
+2. Miruro [Anime]
+3. Hydrahd [TV-Series/Movies]
+4. Cxtvlive [TV Channels]
+5. IPTV [TV Channels]
