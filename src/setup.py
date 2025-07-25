@@ -1,4 +1,5 @@
-'''Setup'''
+"""Setup"""
+
 import os
 import subprocess
 from pathlib import Path
@@ -11,19 +12,34 @@ long_description = (this_directory / "README.md").read_text()
 # Set a reasonable umask.
 os.umask(0o022)
 # Make all local files readable and all directories listable.
-subprocess.call(['chmod', '-R', 'a+rX', '.'])
+subprocess.call(["chmod", "-R", "a+rX", "."])
 
 setup(
-    name="downitall",
-    version='1.0',
-    description='A cli to download and stream all kind of media',
+    name="downitall_windows",
+    version="1.1",
+    description="A cli to download and stream all kind of media",
     long_description=long_description,
-    long_description_content_type='text/markdown',
-    author='Behram Akhtar/Aatiho Nora',
-    author_email='behramakhtar@gmail.com',
-    packages=['downitall', 'downitall.resources'],  #same as name
-    package_data={'': ['license.txt', 'vlc']},
+    long_description_content_type="text/markdown",
+    author="Behram Akhtar/Aatiho Nora",
+    author_email="behramakhtar@gmail.com",
+    packages=["downitall", "downitall.resources"],  # same as name
+    package_data={"": ["license.txt"]},
     include_package_data=True,
-    install_requires=['requests', 'bs4', 'selenium==4.9.1', 'cbz-generator', 'tqdm', 'gdown', 'term-image', 'questionary', 'yt-dlp', 'xdcc-dl', 'streamlink', 'm3u-ipytv'], #external packages as dependencies
-    scripts=['bin/downitall', 'bin/vlc'],
+    install_requires=[
+        "requests==2.32.4",
+        "bs4==0.0.2",
+        "selenium==4.9.1",
+        "selenium-wire==5.1.0",
+        "blinker==1.7.0",
+        "cbz-generator==1.0.0",
+        "tqdm==4.67.1",
+        "gdown==5.2.0",
+        "term-image==0.7.2",
+        "questionary==2.1.0",
+        "ytmusicapi==1.10.3",
+        "xdcc-dl==5.2.1",
+        "streamlink==7.5.0",
+        "m3u-ipytv==0.2.11",
+    ],  # external packages as dependencies
+    scripts=["bin/downitall"],
 )

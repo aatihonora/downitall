@@ -163,51 +163,33 @@ def manga():
         "Select item",
         choices=[
             "Bato",
-            "Mangasee",
+            "Weebcentral",
             "Nyaa",
-            "ComicExtra",
-            "Getcomics",
+            "Rawotaku",
+            "Readallcomics",
             "Reset",
             "Exit",
         ],
     ).ask()
     if select == "Bato":
+        Mangasources().Bato().bato_search(search_term)
+    elif select == "Weebcentral":
         # Third question to choose how to download
         download_select = questionary.select(
             "Select item", choices=["Single Download", "Batch Download", "Exit"]
         ).ask()
         if download_select == "Single Download":
-            Mangasources().Bato().bato_search(search_term)
-        elif select == "Batch Download":
-            Mangasources().Bato().bato_batch(search_term)
-        else:
-            pass
-    elif select == "Mangasee":
-        # Third question to choose how to download
-        download_select = questionary.select(
-            "Select item", choices=["Single Download", "Batch Download", "Exit"]
-        ).ask()
-        if download_select == "Single Download":
-            Mangasources().Mangasee().mangasee_search(search_term)
-        elif select == "Batch Download":
-            Mangasources().Mangasee().mangasee_batch(search_term)
+            Mangasources().Weebcentral().weebcentral(search_term)
+        elif download_select == "Batch Download":
+            Mangasources().Weebcentral().weebcentral_batch(search_term)
         else:
             pass
     elif select == "Nyaa":
         Mangasources().Nyaa().nyaa_search(search_term)
-    elif select == "ComicExtra":
-        # Third question to choose how to download
-        download_select = questionary.select(
-            "Select item", choices=["Single Download", "Batch Download", "Exit"]
-        ).ask()
-        if download_select == "Single Download":
-            Mangasources().Comicextra().comicextra_search(search_term)
-        elif select == "Batch Download":
-            Mangasources().Comicextra().comicextra_batch(search_term)
-        else:
-            pass
-    elif select == "Comick":
-        Mangasources().Getcomics().getcomics(search_term)
+    elif select == "Rawotaku":
+        Mangasources().Rawotaku().rawotaku(search_term)
+    elif select == "Readallcomics":
+        Mangasources().Readallcomics().readallcomics(search_term)
     elif select == "Reset":
         Core().questions()
     else:
@@ -221,8 +203,8 @@ def music():
     select = questionary.select(
         "Select item",
         choices=[
-            "Lightaudio",
-            "Bomb-music",
+            "Tancpol",
+            "Podcast Index",
             "PlayerFM",
             "Youtube Music",
             "1337x",
@@ -230,10 +212,10 @@ def music():
             "Exit",
         ],
     ).ask()
-    if select == "Lightaudio":
-        Musicsources().Light_audio().lightaudio(search_term)
-    elif select == "Bomb-music":
-        Musicsources().Bomb_music().bombmusic(search_term)
+    if select == "Podcast Index":
+        Musicsources().Podcastindex().podcastindex(search_term)
+    elif select == "Tancpol":
+        Musicsources().Tancpol().tancpol(search_term)
     elif select == "PlayerFM":
         Musicsources().Player_fm().player(search_term)
     elif select == "Youtube Music":
@@ -399,10 +381,10 @@ class Core:
     
     Anime: TokyoInsider, Nyaa(*), Kayoanime, Nibl, Animk
     Books: Libgen, Annas Archive(-), 1337x(*), Rutracker(*), Golden Audio Books
-    Manga: Bato, Mangasee, ComicExtra, Nyaa(*), Get Comics
-    Music: Light Audio, Bomb Music, PlayerFM, 1337x(*), Youtube Music
-    Stream: Heartive, Miruro, Yoyomovies, Cxtvlive, IPTV
-    TV-Series/Movies: Vadapav, 1337x(*), Documentaries, Datadiff, Drama PK
+    Manga: Bato, Weebcentral, Rawotaku, Nyaa(*), Readallcomics
+    Music: Tancpol, Podcast Index, PlayerFM, 1337x(*), Youtube Music
+    TV-Series/Movies: Vadapav, 1337x(*), Documentaries, Vegamovies, Asian Dramas
+    Stream: Anizone, Miruro, Hydrahd, Cxtvlive, IPTV
     """
     subprocess.call(["clear"])
     print(logo.center(20))

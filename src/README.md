@@ -2,7 +2,7 @@
 
 This is an educational CLI program to learn web scraping and Python.
 
-IT DOES NOT HOST ANYTHING.
+IT DOES NOT HOST ANYTHING & IS PURELY FOR EDUCATIONAL PURPOSES.
 
 # How to run it
 
@@ -66,32 +66,50 @@ python bookcli.py
 
 # Supported Websites
 
-## Books
-
-1. Libgen [Books]
-2. Anna's Archive [Books]
-3. 1337x [Books] [Courses] [Torrent]
-
-## Manga
-
-1. Bato.to [Manhwa/Manhua]
-2. Mangasee [Manga]
-3. ComicExtra [Comic]
-
 ## Anime
 
 1. TokyoInsider [Anime]
 2. Nyaa.si [Anime] [Torrent]
 3. Kayoanime [Anime]
+4. Nibl [Anime]
+5. Animk [Anime]
+
+## Books
+
+1. Libgen [Books]
+2. Anna's Archive [Books]
+3. 1337x [Books] [Courses] [Torrent]
+4. Rutracker [Books] [Courses] [Torrent]
+5. Golden Audio Books [Audio Books]
+
+## Manga
+
+1. Bato.to [Manhwa/Manhua]
+2. Weebcentral [Manga]
+3. Nyaa [Manga] [Torrent]
+4. Rawotaku [Raw Manga]
+5. Readallcomics [Comic]
+
+## Music
+
+1. Tancpol [Tracks]
+2. Postcast Index [Podcasts]
+3. PlayerFM [Podcasts]
+4. Youtube Music [Tracks]
+5. 1337x [Torrent]
 
 ## TV-Series/Movies
 
 1. Vadapav [TV-Series/Movies]
 2. 1337x [TV-Series/Movies] [Torrent]
-3. DocumentayTop [Documentaries] [Torrent]
+3. Documentay [Documentaries]
+4. Vegamovies [Movies]
+5. Asian Dramas [Asian]
 
-## Music
+## Live Streaming
 
-1. Lightaudio [Tracks]
-2. Bomb-music [Tracks]
-3. PlayerFM [Podcasts]
+1. Anizone [Anime]
+2. Miruro [Anime]
+3. Hydrahd [TV-Series/Movies]
+4. Cxtvlive [TV Channels]
+5. IPTV [TV Channels]

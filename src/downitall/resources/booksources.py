@@ -2,13 +2,11 @@
 
 # Importing necessary modules
 import os
-import platform
 import re
 import shutil
 import subprocess
 import sys
 import time
-import webbrowser
 
 import pandas as pd
 import questionary
