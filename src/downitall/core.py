@@ -251,9 +251,9 @@ def tv():
             "Select item", choices=["Single Download", "Batch Download", "Exit"]
         ).ask()
         if download_select == "Single Download":
-            Tvsources().Vadapav().vadapav_search(search_term)
+            Tvsources().Vadapav().vadapav_search()
         elif download_select == "Batch Download":
-            Tvsources().Vadapav().vadapav_batch(search_term)
+            Tvsources().Vadapav().vadapav_batch()
         else:
             pass
     elif select == "1337x":
@@ -357,8 +357,13 @@ class Core:
             pass
 
     # Creating and changing to Download folder.
-    # os.chdir("/data/data/com.termux/files/home/storage/downloads")
-    os.chdir("/mnt/c/Users/Public/Downloads/")
+    windows = "/mnt/e/Downloads/"
+    android = "/data/data/com.termux/files/home/storage/downloads"
+    if not os.path.isdir(windows):
+        os.mkdir(windows)
+        os.chdir(windows)
+    else:
+        os.chdir(windows)
     dir = "Downitall"
     if not os.path.isdir(dir):
         os.mkdir(dir)

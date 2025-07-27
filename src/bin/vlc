@@ -1,0 +1,28 @@
+#!/bin/bash
+set -e
+
+INTERFACE=${INTERFACE:-127.0.0.1}
+PORT=${PORT:-4567}
+PLAYER=${PLAYER:-org.videolan.vlc/org.videolan.vlc.gui.video.VideoPlayerActivity}
+
+streamlink "$@" \
+  --player-external-http \
+  --player-external-http-interface "${INTERFACE}" \
+  --player-external-http-port "${PORT}" \
+  &
+
+slpid=$!
+trap "kill ${slpid} 2>/dev/null" EXIT
+
+while ! curl --output /dev/null --silent --head --fail "http://${INTERFACE}:${PORT}"; do
+  sleep 0.1
+done
+
+am start \
+  -n "${PLAYER}" \
+  -a android.intent.action.VIEW \
+  -d "http://${INTERFACE}:${PORT}"
+
+read -n1 -s
+clear
+# or run: wait $slpid
