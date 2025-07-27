@@ -19,17 +19,14 @@ pkg update
 termux-setup-storage
 pkg install -y python git openssl x11-repo tur-repo aria2 wget
 pkg install -y chromium python-pandas
-git clone https://github.com/aatihonora/bookcli/
-cd bookcli
-pip install -r android_requirements.txt
-python bookcli.py
+
+pip install downitall-android
 ```
 
 ### Already installed
 
 ```
-cd bookcli
-python bookcli.py
+downitall
 ```
 
 ## Window/Linux
@@ -51,17 +48,15 @@ Step 4: From here linux and windows have same process, use these commands to pro
 ```
 sudo apt update
 sudo apt install python3 chromium-browser git aria2 wget
-git clone https://github.com/aatihonora/bookcli/
-cd bookcli
-pip install -r win_linux_requirements.txt
-python bookcli.py
+
+pip install downitall-windows
 ```
 
 ### Already installed
 
 ```
-cd bookcli
-python bookcli.py
+
+downitall
 ```
 
 # Supported Websites
