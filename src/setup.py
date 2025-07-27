@@ -15,8 +15,8 @@ os.umask(0o022)
 subprocess.call(["chmod", "-R", "a+rX", "."])
 
 setup(
-    name="downitall",
-    version="2",
+    name="downitall_windows",
+    version="1.5",
     description="A cli to download and stream all kind of media",
     long_description=long_description,
     long_description_content_type="text/markdown",
