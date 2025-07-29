@@ -357,19 +357,19 @@ class Core:
             pass
 
     # Creating and changing to Download folder.
-    windows = "/mnt/e/Downloads/"
-    android = "/data/data/com.termux/files/home/storage/downloads"
-    if not os.path.isdir(windows):
-        os.mkdir(windows)
-        os.chdir(windows)
-    else:
-        os.chdir(windows)
-    dir = "Downitall"
-    if not os.path.isdir(dir):
-        os.mkdir(dir)
-        os.chdir(dir)
-    else:
-        os.chdir(dir)
+    #    windows = "/mnt/e/Downloads/"
+    #    android = "/data/data/com.termux/files/home/storage/downloads"
+    #    if not os.path.isdir(windows):
+    #        os.mkdir(windows)
+    #        os.chdir(windows)
+    #    else:
+    #        os.chdir(windows)
+    #    dir = "Downitall"
+    #    if not os.path.isdir(dir):
+    #        os.mkdir(dir)
+    #        os.chdir(dir)
+    #    else:
+    #        os.chdir(dir)
 
     # General UI and introduction with guide.
     logo = """

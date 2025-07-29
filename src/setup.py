@@ -7,7 +7,7 @@ from pathlib import Path
 from setuptools import setup
 
 this_directory = Path(__file__).parent
-long_description = (this_directory / "README.md").read_text()
+long_description = (this_directory / "Readme.md").read_text()
 
 # Set a reasonable umask.
 os.umask(0o022)
@@ -18,8 +18,6 @@ setup(
     name="downitall_windows",
     version="1.5",
     description="A cli to download and stream all kind of media",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
     author="Behram Akhtar/Aatiho Nora",
     author_email="behramakhtar@gmail.com",
     packages=["downitall", "downitall.resources"],
@@ -42,6 +40,7 @@ setup(
         "m3u-ipytv==0.2.11",
         "setuptools==80.9.0",
         "yt-dlp==2025.6.30",
+        "pandas",
     ],  # external packages as dependencies
     scripts=["bin/downitall"],
 )
